@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /staff
+Disallow: /cms.html
+Disallow: /broadcast.html
+Sitemap: https://suphan-legalaid.vercel.app/sitemap.xml

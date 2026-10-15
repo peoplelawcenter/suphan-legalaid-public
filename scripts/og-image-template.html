@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Prompt'; src: url('./fonts/Prompt-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'Prompt'; src: url('./fonts/Prompt-SemiBold.ttf') format('truetype'); font-weight: 600; }
+  @font-face { font-family: 'Prompt'; src: url('./fonts/Prompt-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'Prompt'; src: url('./fonts/Prompt-ExtraBold.ttf') format('truetype'); font-weight: 800; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 1200px; height: 630px; overflow: hidden; font-family: 'Prompt', sans-serif; }
+  body {
+    position: relative;
+    background: #082957;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 18%, rgba(75, 145, 218, .28), transparent 31%),
+      radial-gradient(circle at 92% 92%, rgba(232, 183, 70, .18), transparent 28%),
+      linear-gradient(122deg, transparent 0 64%, rgba(255,255,255,.035) 64% 75%, transparent 75%);
+  }
+  .frame {
+    position: relative;
+    width: 1128px;
+    height: 558px;
+    border: 2px solid rgba(231, 186, 76, .72);
+    border-radius: 28px;
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0, 12, 34, .34);
+  }
+  .identity {
+    position: relative;
+    padding: 42px 32px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, rgba(255,255,255,.11), rgba(255,255,255,.035));
+    border-right: 1px solid rgba(255,255,255,.15);
+  }
+  .pao-mark {
+    width: 224px;
+    height: 224px;
+    border-radius: 50%;
+    background: #fff;
+    border: 7px solid #e7ba4c;
+    box-shadow: 0 0 0 8px rgba(255,255,255,.12), 0 18px 36px rgba(0, 15, 42, .35);
+    overflow: hidden;
+  }
+  .pao-mark img { width: 100%; height: 100%; object-fit: cover; }
+  .agency {
+    margin-top: 25px;
+    color: #f7d982;
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: center;
+  }
+  .agency-full {
+    margin-top: 7px;
+    color: rgba(255,255,255,.82);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+  }
+  .content {
+    padding: 50px 54px 42px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(231,186,76,.16);
+    border: 1px solid rgba(247,217,130,.55);
+    color: #f7d982;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .2px;
+  }
+  h1 {
+    margin: 18px 0 0;
+    color: #fff;
+    font-size: 53px;
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -.8px;
+  }
+  h1 .accent { color: #f0c75e; }
+  .services {
+    margin-top: 18px;
+    color: rgba(255,255,255,.9);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.55;
+  }
+  .free {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: 17px;
+    padding: 8px 15px;
+    border-radius: 10px;
+    background: #fff;
+    color: #082957;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .partner {
+    margin-top: 25px;
+    padding-top: 17px;
+    border-top: 1px solid rgba(255,255,255,.18);
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .partner img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #fff;
+    object-fit: cover;
+    border: 2px solid rgba(247,217,130,.75);
+  }
+  .partner-copy { color: rgba(255,255,255,.78); font-size: 14px; line-height: 1.4; }
+  .partner-copy strong { display: block; color: #fff; font-size: 16px; font-weight: 700; }
+</style>
+</head>
+<body>
+  <main class="frame">
+    <section class="identity">
+      <div class="pao-mark"><img src="../public/assets/logo-pao.png" alt=""></div>
+      <div class="agency">อบจ.สุพรรณบุรี</div>
+      <div class="agency-full">องค์การบริหารส่วนจังหวัดสุพรรณบุรี</div>
+    </section>
+    <section class="content">
+      <div class="eyebrow">บริการประชาชนด้านกฎหมาย</div>
+      <h1>ศูนย์ช่วยเหลือประชาชน<br>ทางกฎหมาย <span class="accent">อบจ.สุพรรณบุรี</span></h1>
+      <div class="services">ปรึกษาข้อกฎหมาย · ฝากเรื่องร้องเรียน · นัดหมายทนายอาสา</div>
+      <div class="free">บริการฟรี ไม่มีค่าใช้จ่าย</div>
+      <div class="partner">
+        <img src="../public/assets/logo-lawyers-council-sm.png" alt="">
+        <div class="partner-copy">ดำเนินงานร่วมกับ<strong>สภาทนายความจังหวัดสุพรรณบุรี</strong></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

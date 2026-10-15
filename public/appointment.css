@@ -1,0 +1,186 @@
+/* public/appointment.css — "แบบคำร้องขอเข้ารับคำปรึกษาทางกฎหมาย" (appointment.html) เพิ่ม 30 ก.ย. 69
+   หน้าตาแนวแบบคำร้อง e-service ของเว็บ อบจ. (suphan.go.th/eservice/cctv — บอสส่งเป็นต้นแบบ): แถบหัวไล่สี
+   น้ำเงิน + โลโก้กึ่งกลาง + ชื่อแบบคำร้องตัวขาว · การ์ดขาวลอยทับแถบหัว · ป้ายช่องมีดอกจันแดง · ปุ่มเขียว
+   "ยื่นแบบคำร้อง" คู่ปุ่มเทา "ยกเลิก" — ปรับเป็นโลโก้คู่ อบจ.+สภาทนายความ และโทน navy/gold ของศูนย์
+   แยกไฟล์จาก form.css โดยตั้งใจ (form.css ใช้ร่วมกับ consult/complaint/add-evidence — ไม่แตะให้หน้าอื่นเปลี่ยน)
+   mobile-first: มือถือคอลัมน์เดียว จอ ≥ 760px ค่อยจัดกริด 12 คอลัมน์แบบต้นแบบ · มีธีมมืดตามระบบ */
+:root {
+  --navy: #0B2E6D;
+  --navy-dark: #082158;
+  --gold: #D9A93B;
+  --bg: #eef2f8;
+  --card: #ffffff;
+  --text: #1c2530;
+  --muted: #5A6B85;
+  --line: #cfd8e6;
+  --field: #ffffff;
+  --soft: #EAF3FC;
+  --req: #d32f2f;
+  --ok: #1e8a4c;
+  --ok-dark: #176e3c;
+  --cancel: #6c757d;
+  --danger-bg: #fdecea;
+  --danger: #b3261e;
+  --note-bg: #FBF3E1;
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1220; --card: #121c30; --text: #e6ecf5; --muted: #9fb0c9; --line: #2c3c5c;
+    --field: #0e1728; --soft: #16243d; --note-bg: #2a2412; --danger-bg: #3a1614; --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1220; --card: #121c30; --text: #e6ecf5; --muted: #9fb0c9; --line: #2c3c5c;
+  --field: #0e1728; --soft: #16243d; --note-bg: #2a2412; --danger-bg: #3a1614; --danger: #ff8a80;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Sarabun', 'Prompt', 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+[hidden] { display: none !important; }
+
+/* ═══ แถบหัวไล่สีน้ำเงิน (ตามต้นแบบ) ═══ */
+.eh {
+  background: linear-gradient(160deg, #1537b8 0%, var(--navy) 55%, var(--navy-dark) 100%);
+  color: #fff;
+  text-align: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 22px) 16px 92px;
+}
+.eh-logos { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 12px; }
+.eh-logos img {
+  width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #fff;
+  border: 3px solid rgba(255, 255, 255, 0.85); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+.eh h1 { font-family: 'Prompt', 'Sarabun', sans-serif; font-weight: 700; font-size: 1.2rem; line-height: 1.35; margin: 0 0 6px; }
+.eh p { margin: 0 auto; max-width: 560px; font-size: 0.84rem; color: #f3dfae; }
+
+/* ═══ การ์ดขาวลอยทับแถบหัว ═══ */
+.sheet {
+  position: relative;
+  max-width: 1040px;
+  margin: -70px 16px 0;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgba(8, 33, 88, 0.14);
+  padding: 20px 16px 24px;
+}
+.channel { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; background: var(--soft); color: var(--navy); margin-bottom: 6px; }
+.channel.line { background: #e3f6e9; color: #0f7a3a; }
+:root[data-theme="dark"] .channel, :root[data-theme="dark"] .channel.line { color: var(--text); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .channel, :root:not([data-theme="light"]) .channel.line { color: var(--text); } }
+
+.sec { font-family: 'Prompt', 'Sarabun', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text); margin: 18px 0 4px; }
+.sec .plain { font-weight: 400; }
+.sec-note { font-size: 0.84rem; color: var(--muted); margin: 0 0 6px; }
+
+.grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
+.f { min-width: 0; }
+.f label, .f .lab { display: block; font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; }
+.req { color: var(--req); margin-left: 2px; }
+.f input[type=text], .f input[type=tel], .f select, .f textarea {
+  width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+  font-size: 1rem; font-family: inherit; background: var(--field); color: var(--text); min-height: 46px;
+}
+.f textarea { min-height: 110px; resize: vertical; }
+.f input:focus, .f select:focus, .f textarea:focus { outline: 2px solid #3b6fd8; outline-offset: 1px; border-color: #3b6fd8; }
+.f.invalid input, .f.invalid select, .f.invalid textarea, .f.invalid .times { border-color: var(--req); box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.15); }
+.f .sub { margin-top: 8px; }
+.counter { text-align: right; font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+/* เวลา — ปุ่มตัวเลือกแบบวิทยุ (ชุด 09:00–15:00 เว้นพักเที่ยง) มือถือ 3 ช่องต่อแถว */
+.times { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border-radius: 10px; }
+.times label { margin: 0; position: relative; }
+.times input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.times span {
+  display: block; text-align: center; padding: 11px 4px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--field); font-weight: 600; font-size: 0.95rem; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.times input:checked + span { background: var(--navy); border-color: var(--navy); color: #fff; }
+.times input:focus-visible + span { outline: 2px solid #3b6fd8; outline-offset: 2px; }
+
+.hint-box { background: var(--note-bg); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; margin-top: 14px; }
+
+.pdpa { display: flex; gap: 10px; align-items: flex-start; background: var(--soft); border-radius: 10px; padding: 12px; margin-top: 18px; font-size: 0.86rem; }
+.pdpa input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; }
+.pdpa label { font-weight: 400; }
+.pdpa.invalid { outline: 2px solid var(--req); }
+
+.hp { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+
+.form-error { background: var(--danger-bg); color: var(--danger); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; margin-top: 16px; }
+
+.actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+.btn {
+  display: block; width: 100%; border: none; border-radius: 8px; padding: 13px 16px; min-height: 48px;
+  font-family: 'Prompt', 'Sarabun', sans-serif; font-weight: 600; font-size: 1rem; cursor: pointer;
+  color: #fff; text-align: center; text-decoration: none;
+}
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn.submit { background: var(--ok); }
+.btn.submit:hover:not(:disabled) { background: var(--ok-dark); }
+.btn.cancel { background: var(--cancel); }
+.btn.navy { background: var(--navy); }
+.btn.line { background: #06C755; }
+.btn.ghost { background: transparent; color: var(--navy); border: 1px solid var(--navy); }
+:root[data-theme="dark"] .btn.ghost { color: var(--text); border-color: var(--line); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.ghost { color: var(--text); border-color: var(--line); } }
+.fine { font-size: 0.78rem; color: var(--muted); text-align: center; margin: 14px 0 0; }
+
+/* ═══ กล่องสถานะ (กำลังโหลด/ลิงก์ไม่ถูกต้อง/ปิดรับ/ส่งแล้ว) + หน้าสำเร็จ ═══ */
+.state { text-align: center; padding: 18px 4px 6px; }
+.state .ic { font-size: 2.6rem; line-height: 1; margin-bottom: 10px; }
+.state h2 { font-family: 'Prompt', 'Sarabun', sans-serif; font-size: 1.15rem; margin: 0 0 8px; color: var(--text); }
+.state p { color: var(--muted); margin: 0 0 8px; }
+.state .actions { max-width: 420px; margin-left: auto; margin-right: auto; }
+
+.caseno-box { background: var(--soft); border: 2px dashed var(--navy); border-radius: 12px; padding: 12px; margin: 12px auto; max-width: 360px; }
+.caseno-box .l { font-size: 0.82rem; color: var(--muted); }
+.caseno-box .v { font-family: 'Prompt', 'Sarabun', sans-serif; font-size: 1.6rem; font-weight: 800; letter-spacing: 0.5px; color: var(--navy); word-break: break-all; }
+:root[data-theme="dark"] .caseno-box .v { color: #9cc2ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .caseno-box .v { color: #9cc2ff; } }
+.summary { text-align: left; max-width: 480px; margin: 12px auto 0; border-top: 1px solid var(--line); padding-top: 10px; font-size: 0.9rem; }
+.summary div { display: flex; gap: 10px; padding: 4px 0; }
+.summary b { flex: 0 0 96px; color: var(--muted); font-weight: 600; }
+.summary span { min-width: 0; overflow-wrap: anywhere; }
+/* 30 ก.ย. 69: กล่องข้อมูลวันนัด (สถานที่/ทนายอาสา/เอกสาร) บนหน้ายื่นสำเร็จ — ข้อมูลจาก appt-config.visit */
+.visitbox { text-align: left; max-width: 480px; margin: 16px auto 0; background: #fff; border: 2px solid var(--navy); border-radius: 12px; padding: 12px 14px; font-size: 0.9rem; }
+.visitbox h3 { font-size: 0.95rem; margin: 10px 0 6px; color: var(--navy); }
+.visitbox h3:first-child { margin-top: 0; }
+.visitbox p { margin: 0 0 6px; color: var(--text); overflow-wrap: anywhere; }
+.visitbox .muted { color: var(--muted); font-size: 0.85rem; }
+.visitbox ol { margin: 0 0 6px; padding-left: 1.3em; }
+.visitbox li { margin: 3px 0; overflow-wrap: anywhere; }
+.visitbox li::marker { color: var(--gold); font-weight: 700; }
+.visitbox .note { display: inline-block; background: var(--note-bg); border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; }
+.visitbox .btn { display: inline-block; width: auto; padding: 8px 14px; font-size: 0.9rem; }
+.track { text-align: left; max-width: 480px; margin: 16px auto 0; background: var(--note-bg); border-radius: 10px; padding: 12px 14px; font-size: 0.9rem; }
+.track h3 { font-size: 0.95rem; margin: 0 0 6px; }
+.track p { margin: 0 0 6px; color: var(--text); }
+
+.foot { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 22px 16px calc(env(safe-area-inset-bottom, 0px) + 22px); }
+
+/* ═══ จอกว้าง: กริด 12 คอลัมน์แบบต้นแบบ ═══ */
+@media (min-width: 760px) {
+  .eh { padding-top: 30px; padding-bottom: 110px; }
+  .eh-logos img { width: 84px; height: 84px; }
+  .eh h1 { font-size: 1.5rem; }
+  .eh p { font-size: 0.92rem; }
+  .sheet { margin: -84px auto 0; padding: 34px 48px 36px; width: calc(100% - 64px); }
+  .grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px 24px; padding-left: 20px; }
+  .c3 { grid-column: span 3; } .c4 { grid-column: span 4; } .c5 { grid-column: span 5; }
+  .c6 { grid-column: span 6; } .c7 { grid-column: span 7; } .c12 { grid-column: span 12; }
+  .times { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .hint-box, .pdpa { margin-left: 20px; }
+  .actions.two { grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 20px; }
+}

@@ -1,0 +1,35 @@
+# .vercelignore — เพิ่ม 30 ก.ย. 69 (Hermes)
+# ⛔ Vercel CLI "ไม่อ่าน .gitignore" — ก่อนมีไฟล์นี้ `npx vercel --prod` อัปโหลดไฟล์ลับขึ้นไปเก็บเป็น source ของ deployment ทุกครั้ง
+# (ตรวจ 30 ก.ย. 69 เจอ _private/*, email pass.txt, facebook.txt, .vercel-global-config/auth.json) — ไม่ได้เปิดสาธารณะ (เว็บเสิร์ฟแค่ public/)
+# แต่คนในทีม Vercel เปิดดูได้ · ไฟล์นี้กันไว้ทุก deploy จากนี้ไป — เพิ่มไฟล์ลับใหม่ที่ root ต้องเพิ่มชื่อที่นี่ด้วย
+
+# ── ไฟล์ลับ/บัญชี (ห้ามขึ้น Vercel เด็ดขาด) ──
+_private/
+.vercel-global-config/
+.env
+.env.*
+/email pass.txt
+/facebook.txt
+/*.txt
+*.token
+*.key
+
+# ── ของที่ไม่ใช่โค้ดรันจริง (ภาพอ้างอิงงานออกแบบ · งานชั่วคราวของเครื่องมืออื่น · สคริปต์ dev/เรนเดอร์) ──
+tmp/
+output/
+docs/
+scripts/
+supabase/.temp/
+
+# เอกสารสถาปัตยกรรมและตั้งค่า agent/workflow ไม่ใช่ไฟล์รันบนเว็บ
+CLAUDE.md
+SPEC.md
+AGENTS.md
+.claude/
+.github/
+/*.jpg
+/*.jfif
+/*.png
+
+# ต้นฉบับ PDF เอกสารจัดตั้งศูนย์ (สำเนาที่เว็บเสิร์ฟอยู่ public/assets/official/ แล้ว — 6 ต.ค. 69)
+pdf/

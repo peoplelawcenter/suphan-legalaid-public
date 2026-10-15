@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>เข้าสู่ระบบเจ้าหน้าที่ — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</title>
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/login.css">
+<link rel="icon" href="/assets/logo-pao.png">
+</head>
+<body>
+<div class="login-page">
+
+  <!-- ═══ ฝั่งแนะนำหน่วยงาน (ซ้ายบนจอกว้าง / บนสุดบนมือถือ) ═══ -->
+  <div class="login-hero">
+    <div class="hero-logos">
+      <img src="/assets/logo-pao.png" class="hero-logo" alt="ตราองค์การบริหารส่วนจังหวัดสุพรรณบุรี" />
+      <img src="/assets/logo-lawyers-council-sm.png" class="hero-logo" alt="ตราสภาทนายความจังหวัดสุพรรณบุรี" />
+    </div>
+    <h1 class="hero-title">ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</h1>
+    <p class="hero-sub">สภาทนายความจังหวัดสุพรรณบุรี ร่วมกับ องค์การบริหารส่วนจังหวัดสุพรรณบุรี</p>
+    <p class="hero-desc">ระบบหลังบ้านสำหรับเจ้าหน้าที่ดูแลเรื่องร้องเรียน ให้คำปรึกษาข้อกฎหมาย และนัดหมายทนายอาสาที่ประชาชนแจ้งเข้ามาทาง LINE Official Account ของศูนย์</p>
+    <div class="hero-info" id="heroInfo">
+      <div class="row"><span class="ic">🕐</span><span>วันจันทร์–ศุกร์ 08:30–16:30 น.</span></div>
+      <div class="row"><span class="ic">☎️</span><span>สอบถามเพิ่มเติม โทร. <a href="tel:035431751">035-431-751</a></span></div>
+    </div>
+  </div>
+
+  <!-- ═══ ฝั่งเข้าสู่ระบบ (ขวาบนจอกว้าง / ล่างบนมือถือ) ═══ -->
+  <div class="login-panel">
+    <div class="login-card">
+      <img src="/assets/logo-pao.png" class="login-card-logo" alt="" />
+      <h2 class="login-welcome">ยินดีต้อนรับ</h2>
+      <p class="login-welcome-sub">ระบบเจ้าหน้าที่<br>ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</p>
+
+      <div id="oauthBanner"></div>
+
+      <div class="sso-list">
+        <a class="sso-btn sso-facebook" href="/api/staff-auth?action=oauth-start&amp;provider=facebook">
+          <span class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#fff" d="M22 12.06C22 6.51 17.52 2 12 2S2 6.51 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.89h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
+          </span>
+          เข้าสู่ระบบด้วย Facebook
+        </a>
+        <a class="sso-btn sso-google" href="/api/staff-auth?action=oauth-start&amp;provider=google">
+          <span class="ico" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="20" height="20">
+              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.5 29.6 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5Z"/>
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 5.5 29.6 3.5 24 3.5c-7.6 0-14.2 4.3-17.7 10.6Z"/>
+              <path fill="#4CAF50" d="M24 44.5c5.5 0 10.4-1.9 14.1-5.1l-6.5-5.5c-2 1.5-4.6 2.4-7.6 2.4-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.7 40.1 16.3 44.5 24 44.5Z"/>
+              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.5 5.5C41.4 35.9 44.5 30.5 44.5 24c0-1.2-.1-2.4-.9-3.5Z"/>
+            </svg>
+          </span>
+          เข้าสู่ระบบด้วย Google
+        </a>
+        <a class="sso-btn sso-line" href="/api/staff-auth?action=oauth-start&amp;provider=line">
+          <span class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#fff" d="M12 3C6.48 3 2 6.69 2 11.23c0 4.07 3.59 7.48 8.43 8.13.33.07.78.22.89.5.1.26.06.66.03.92l-.14.87c-.04.26-.2 1 .88.55 1.08-.46 5.82-3.43 7.94-5.87C21.5 14.6 22 12.99 22 11.23 22 6.69 17.52 3 12 3Zm-3.6 10.7H6.9a.32.32 0 0 1-.32-.32V8.98c0-.18.14-.32.32-.32.18 0 .32.14.32.32v4.08h1.18c.18 0 .32.15.32.32 0 .18-.14.32-.32.32Zm1.86 0c-.18 0-.32-.14-.32-.32V8.98c0-.18.14-.32.32-.32.18 0 .32.14.32.32v4.4c0 .18-.14.32-.32.32Zm4.68 0c-.1 0-.2-.05-.26-.13L12.5 10.6v2.46c0 .18-.14.32-.32.32-.18 0-.32-.14-.32-.32V8.98c0-.15.1-.28.24-.31.14-.04.29.01.37.13l2.18 2.97V8.98c0-.18.14-.32.32-.32.18 0 .32.14.32.32v4.4c0 .15-.1.28-.24.31a.3.3 0 0 1-.09.01Zm3.98 0h-1.9a.32.32 0 0 1-.32-.32V8.98c0-.18.14-.32.32-.32h1.9c.18 0 .32.14.32.32 0 .18-.14.32-.32.32H17.3v1.12h1.32c.18 0 .32.14.32.32 0 .17-.14.32-.32.32H17.3v1.12h1.62c.18 0 .32.14.32.32 0 .18-.14.32-.32.32Z"/></svg>
+          </span>
+          เข้าสู่ระบบด้วย LINE
+        </a>
+      </div>
+
+      <div class="divider">หรือ</div>
+      <span class="toggle-link" id="toggleEmailLink">เข้าสู่ระบบด้วยอีเมล/รหัสผ่าน</span>
+
+      <div class="email-section" id="emailSection" hidden>
+        <form id="loginForm" class="card">
+          <div id="loginError" class="form-error" hidden></div>
+          <label for="email">อีเมล</label>
+          <input type="email" id="email" required autocomplete="username">
+          <label for="password">รหัสผ่าน</label>
+          <input type="password" id="password" required autocomplete="current-password">
+          <button type="submit" class="btn" id="loginBtn">เข้าสู่ระบบ</button>
+          <div class="link-row"><a id="toForgot">ลืมรหัสผ่าน?</a></div>
+        </form>
+
+        <!-- ขอรีเซ็ตรหัสผ่าน: กรอกอีเมล → รับ OTP ทางอีเมล -->
+        <form id="forgotRequestForm" class="card" hidden>
+          <p class="hint">กรอกอีเมลที่ใช้สมัคร ระบบจะส่งรหัสยืนยัน (OTP) ไปให้ทางอีเมล</p>
+          <label for="forgotEmail">อีเมล</label>
+          <input type="email" id="forgotEmail" required autocomplete="username">
+          <button type="submit" class="btn" id="forgotReqBtn">ส่งรหัสยืนยัน</button>
+          <div class="link-row"><a id="backToLogin1">← กลับไปเข้าสู่ระบบ</a></div>
+        </form>
+
+        <!-- ตั้งรหัสผ่านใหม่: กรอก OTP + รหัสผ่านใหม่ -->
+        <form id="resetForm" class="card" hidden>
+          <div id="resetError" class="form-error" hidden></div>
+          <p class="hint">กรอกรหัสยืนยัน 6 หลักที่ได้รับทางอีเมล และตั้งรหัสผ่านใหม่</p>
+          <label for="otpCode">รหัสยืนยัน (OTP)</label>
+          <input type="text" id="otpCode" inputmode="numeric" maxlength="6" required>
+          <label for="newPassword">รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)</label>
+          <input type="password" id="newPassword" required autocomplete="new-password">
+          <button type="submit" class="btn" id="resetBtn">ตั้งรหัสผ่านใหม่</button>
+          <div class="link-row"><a id="backToLogin2">← กลับไปเข้าสู่ระบบ</a></div>
+        </form>
+
+        <div id="resetDone" class="card success-box" hidden>
+          <div class="icon">✅</div>
+          <h2>ตั้งรหัสผ่านใหม่สำเร็จ</h2>
+          <p>เข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลย</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="/staff-register.html">สมัครสมาชิกด้วยอีเมล</a>
+        <a href="tel:035431751">ติดต่อสอบถาม</a>
+      </div>
+      <p class="footer-org">ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══ ?next= — กลับไปหน้าที่ขอเข้ามา (เพิ่ม 5 ต.ค. 69 ตามผลตรวจ code-reviewer: cms.js ส่ง /staff-login.html?next=/cms.html มาแต่เดิมหน้านี้ไม่อ่าน)
+   ⛔ กัน open redirect: รับเฉพาะ path ภายในเว็บนี้ ขึ้นต้น "/" ตัวเดียว · ห้าม "//" · ห้าม "\" · ห้ามช่องว่าง/อักขระควบคุม · ห้าม /api/
+      · ตรวจซ้ำด้วย URL ว่า origin เดียวกัน · ไม่ผ่าน = ไป /staff.html ตามเดิม
+   ใช้เฉพาะเข้าระบบด้วยอีเมล/รหัสผ่าน — ปุ่ม Google/Facebook/LINE ยังพาไป /staff.html (ต้องแก้ฝั่ง api/staff-auth.js ให้พา next ผ่าน state ก่อน)
+   scripts/test-staffauth.mjs ดึงฟังก์ชันนี้ไปทดสอบตรงๆ — แก้ชื่อ/เครื่องหมายจบต้องแก้เทสต์ด้วย */
+function safeNextPath(raw, origin) {
+  if (typeof raw !== "string" || !raw || raw.length > 300) return null;
+  if (!/^\/[A-Za-z0-9._~\-\/]*(\?[A-Za-z0-9._~\-\/=&%+:,]*)?(#[A-Za-z0-9._~\-\/=&%+:,]*)?$/.test(raw)) return null; // อนุญาตเฉพาะตัวอักษรปลอดภัย (ไม่มี \ ช่องว่าง @ หรืออักขระควบคุม)
+  if (raw.startsWith("//") || /^\/api(\/|$)/i.test(raw) || /^\/staff-login\.html/i.test(raw)) return null;
+  try {
+    const u = new URL(raw, origin);
+    if (u.origin !== new URL(origin).origin) return null;
+    return u.pathname + u.search + u.hash;
+  } catch { return null; }
+} // end safeNextPath
+const NEXT_PATH = safeNextPath(new URLSearchParams(location.search).get("next") || "", location.origin) || "/staff.html";
+
+/* ═══ แบนเนอร์แจ้งผลจากการล็อกอิน/สมัครผ่าน Google/Facebook/LINE (redirect กลับมาพร้อม query string
+   เสมอ — ดู handleOauth() ใน api/staff-auth.js ที่เป็นคนส่งกลับมา ไม่ใช่ fetch เลยต้องอ่านจาก URL) ═══ */
+(function showOauthBanner() {
+  const p = new URLSearchParams(location.search);
+  const box = document.getElementById("oauthBanner");
+  const provider = { google: "Google", facebook: "Facebook", line: "LINE" }[p.get("provider")] || "ผู้ให้บริการ";
+  const ERR = {
+    denied: `ยกเลิกการเข้าสู่ระบบด้วย ${provider}`,
+    not_configured: `ยังไม่เปิดใช้งานการเข้าสู่ระบบด้วย ${provider} กรุณาใช้อีเมล/รหัสผ่านแทนไปก่อน`,
+    invalid_state: "เซสชันเข้าสู่ระบบหมดอายุหรือไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
+    exchange_failed: `เชื่อมต่อกับ ${provider} ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง`,
+    no_email: `บัญชี ${provider} นี้ไม่มีอีเมลให้ใช้สมัครสมาชิก กรุณาสมัครด้วยอีเมล/รหัสผ่านแทน`,
+    create_failed: "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หรือสมัครด้วยอีเมล/รหัสผ่านแทน",
+    line_not_linked: "ยังไม่เคยเชื่อมบัญชี LINE นี้กับบัญชีเจ้าหน้าที่ กรุณาเข้าสู่ระบบด้วยอีเมลก่อน แล้วไปที่ “โปรไฟล์/ตั้งค่า” เพื่อเชื่อมบัญชี LINE",
+    unknown_provider: "ไม่รู้จักช่องทางเข้าสู่ระบบนี้",
+    internal: "ระบบขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง",
+  };
+  // หมายเหตุ 18 ก.ย. 69: เข้าสู่ระบบสำเร็จ (ไม่ว่าจะรออนุมัติ/ถูกระงับ) พาเข้า staff.html ตรงๆ เสมอแล้ว
+  // (ไม่เด้งกลับมาหน้านี้พร้อม oauth_pending/suspended อีกต่อไป) — staff.html เป็นคนแสดงสถานะรออนุมัติ/
+  // ถูกระงับเองหลังเข้าไป (อ่าน error/hint จาก whoFromSession() ใน api/_staffauth.js)
+  if (p.get("oautherror") && ERR[p.get("oautherror")]) {
+    box.innerHTML = `<div class="banner error">${ERR[p.get("oautherror")]}</div>`;
+    // กรณีนี้ต้องเข้าด้วยอีเมลก่อน — เปิดฟอร์มอีเมลให้เลยโดยไม่ต้องกดลิงก์เพิ่มอีกขั้น
+    if (p.get("oautherror") === "line_not_linked") {
+      document.getElementById("emailSection").hidden = false;
+      document.getElementById("toggleEmailLink").hidden = true;
+    }
+  }
+  if (p.get("oautherror")) history.replaceState(null, "", location.pathname + (NEXT_PATH !== "/staff.html" ? "?next=" + encodeURIComponent(NEXT_PATH) : ""));
+})();
+
+document.getElementById("toggleEmailLink").onclick = (e) => {
+  document.getElementById("emailSection").hidden = false;
+  e.target.hidden = true;
+  document.getElementById("emailSection").scrollIntoView({ behavior: "smooth", block: "nearest" });
+};
+
+const els = {
+  loginForm: document.getElementById("loginForm"),
+  loginError: document.getElementById("loginError"),
+  loginBtn: document.getElementById("loginBtn"),
+  forgotRequestForm: document.getElementById("forgotRequestForm"),
+  resetForm: document.getElementById("resetForm"),
+  resetError: document.getElementById("resetError"),
+  resetDone: document.getElementById("resetDone"),
+};
+
+function showOnly(el) {
+  [els.loginForm, els.forgotRequestForm, els.resetForm, els.resetDone].forEach((e) => e.hidden = e !== el);
+}
+
+async function api(action, body) {
+  const r = await fetch("/api/staff-auth?action=" + action, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}),
+  });
+  return r.json();
+}
+
+els.loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.loginError.hidden = true;
+  els.loginBtn.disabled = true; els.loginBtn.textContent = "กำลังเข้าสู่ระบบ...";
+  const d = await api("login", {
+    email: document.getElementById("email").value.trim(),
+    password: document.getElementById("password").value,
+  });
+  els.loginBtn.disabled = false; els.loginBtn.textContent = "เข้าสู่ระบบ";
+  if (!d.ok) { els.loginError.textContent = d.error || "เข้าสู่ระบบไม่สำเร็จ"; els.loginError.hidden = false; return; }
+  location.href = NEXT_PATH; // ผ่าน safeNextPath แล้ว (ค่าเริ่มต้น /staff.html)
+});
+
+document.getElementById("toForgot").onclick = () => showOnly(els.forgotRequestForm);
+document.getElementById("backToLogin1").onclick = () => showOnly(els.loginForm);
+document.getElementById("backToLogin2").onclick = () => showOnly(els.loginForm);
+
+els.forgotRequestForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const resetEmail = document.getElementById("forgotEmail").value.trim();
+  const btn = document.getElementById("forgotReqBtn");
+  btn.disabled = true; btn.textContent = "กำลังส่ง...";
+  await api("request-reset", { email: resetEmail });
+  btn.disabled = false; btn.textContent = "ส่งรหัสยืนยัน";
+  els.resetForm.dataset.email = resetEmail;
+  showOnly(els.resetForm);
+});
+
+els.resetForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.resetError.hidden = true;
+  const btn = document.getElementById("resetBtn");
+  btn.disabled = true; btn.textContent = "กำลังบันทึก...";
+  const d = await api("reset-password", {
+    email: els.resetForm.dataset.email || "",
+    code: document.getElementById("otpCode").value.trim(),
+    newPassword: document.getElementById("newPassword").value,
+  });
+  btn.disabled = false; btn.textContent = "ตั้งรหัสผ่านใหม่";
+  if (!d.ok) { els.resetError.textContent = d.error || "ตั้งรหัสผ่านใหม่ไม่สำเร็จ"; els.resetError.hidden = false; return; }
+  showOnly(els.resetDone);
+});
+</script>
+</body>
+</html>

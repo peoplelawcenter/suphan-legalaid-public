@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>สมัครสมาชิกเจ้าหน้าที่ — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/form.css">
+<link rel="icon" href="/assets/logo-pao.png">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>📝 สมัครสมาชิกเจ้าหน้าที่</h1>
+    <p>ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</p>
+  </div>
+
+  <form id="registerForm" class="card">
+    <div id="registerError" class="form-error" hidden></div>
+    <p class="hint">สมัครด้วยอีเมลที่ใช้งานได้จริง ระบบจะส่งรหัสยืนยัน (OTP) ไปให้ทางอีเมล หลังยืนยันแล้ว
+      ต้องรอผู้ดูแลระบบอนุมัติก่อนจึงจะเข้าใช้งานได้
+      — หรือกดปุ่ม <a href="/staff-login.html">เข้าสู่ระบบด้วย Google/Facebook</a> แทนได้ ระบบจะสมัครให้อัตโนมัติ ไม่ต้องตั้งรหัสผ่านเอง</p>
+    <label for="name">ชื่อ-นามสกุล</label>
+    <input type="text" id="name" required maxlength="100">
+    <label for="email">อีเมล</label>
+    <input type="email" id="email" required autocomplete="username">
+    <label for="password">ตั้งรหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</label>
+    <input type="password" id="password" required autocomplete="new-password">
+    <label for="password2">ยืนยันรหัสผ่านอีกครั้ง</label>
+    <input type="password" id="password2" required autocomplete="new-password">
+    <button type="submit" class="btn" id="registerBtn">สมัครสมาชิก</button>
+    <div class="link-row">มีบัญชีอยู่แล้ว? <a href="/staff-login.html">เข้าสู่ระบบ</a></div>
+  </form>
+
+  <form id="otpForm" class="card" hidden>
+    <div id="otpError" class="form-error" hidden></div>
+    <p class="hint">ส่งรหัสยืนยัน 6 หลักไปที่ <b id="otpEmailLabel"></b> แล้ว กรุณากรอกภายใน 10 นาที</p>
+    <label for="otpCode">รหัสยืนยัน (OTP)</label>
+    <input type="text" id="otpCode" inputmode="numeric" maxlength="6" required>
+    <button type="submit" class="btn" id="otpBtn">ยืนยัน</button>
+    <div class="link-row"><a id="resendOtp">ไม่ได้รับรหัส? ส่งอีกครั้ง</a></div>
+  </form>
+
+  <div id="pendingState" class="card success-box" hidden>
+    <div class="icon" style="font-size:3rem">⏳</div>
+    <h2>ยืนยันอีเมลสำเร็จแล้ว</h2>
+    <p>ท่านเข้าสู่ระบบได้ทันที แต่จะยังดูข้อมูลหรือใช้งานเรื่องต่างๆ ไม่ได้จนกว่าผู้ดูแลระบบจะอนุมัติสิทธิ์เจ้าหน้าที่ให้ก่อน (จะแจ้งทางอีเมลที่สมัครไว้เมื่ออนุมัติแล้ว)</p>
+    <a href="/staff-login.html" class="btn" style="display:block;margin-top:16px;text-decoration:none;text-align:center">ไปหน้าเข้าสู่ระบบ</a>
+  </div>
+
+  <div id="approvedState" class="card success-box" hidden>
+    <div class="icon" style="font-size:3rem">✅</div>
+    <h2>ยืนยันอีเมลสำเร็จแล้ว</h2>
+    <p>บัญชีของท่านได้รับสิทธิ์ผู้ดูแลระบบโดยอัตโนมัติ (แอดมินคนแรกของระบบ) เข้าสู่ระบบได้เลย</p>
+    <a href="/staff-login.html" class="btn" style="display:block;margin-top:16px;text-decoration:none;text-align:center">ไปหน้าเข้าสู่ระบบ</a>
+  </div>
+</div>
+
+<script>
+const els = {
+  registerForm: document.getElementById("registerForm"),
+  registerError: document.getElementById("registerError"),
+  registerBtn: document.getElementById("registerBtn"),
+  otpForm: document.getElementById("otpForm"),
+  otpError: document.getElementById("otpError"),
+  pendingState: document.getElementById("pendingState"),
+  approvedState: document.getElementById("approvedState"),
+};
+let regEmail = "";
+
+function showOnly(el) {
+  [els.registerForm, els.otpForm, els.pendingState, els.approvedState].forEach((e) => e.hidden = e !== el);
+}
+
+async function api(action, body) {
+  const r = await fetch("/api/staff-auth?action=" + action, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}),
+  });
+  return r.json();
+}
+
+els.registerForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.registerError.hidden = true;
+  const password = document.getElementById("password").value;
+  if (password !== document.getElementById("password2").value) {
+    els.registerError.textContent = "รหัสผ่านทั้งสองช่องไม่ตรงกัน"; els.registerError.hidden = false; return;
+  }
+  els.registerBtn.disabled = true; els.registerBtn.textContent = "กำลังสมัคร...";
+  regEmail = document.getElementById("email").value.trim();
+  const d = await api("register", { name: document.getElementById("name").value.trim(), email: regEmail, password });
+  els.registerBtn.disabled = false; els.registerBtn.textContent = "สมัครสมาชิก";
+  if (!d.ok) { els.registerError.textContent = d.error || "สมัครสมาชิกไม่สำเร็จ"; els.registerError.hidden = false; return; }
+  document.getElementById("otpEmailLabel").textContent = regEmail;
+  showOnly(els.otpForm);
+});
+
+els.otpForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.otpError.hidden = true;
+  const btn = document.getElementById("otpBtn");
+  btn.disabled = true; btn.textContent = "กำลังยืนยัน...";
+  const d = await api("verify-otp", { email: regEmail, code: document.getElementById("otpCode").value.trim() });
+  btn.disabled = false; btn.textContent = "ยืนยัน";
+  if (!d.ok) { els.otpError.textContent = d.error || "ยืนยันไม่สำเร็จ"; els.otpError.hidden = false; return; }
+  showOnly(d.approved ? els.approvedState : els.pendingState);
+});
+
+document.getElementById("resendOtp").onclick = async () => {
+  await api("resend-otp", { email: regEmail });
+  alert("ส่งรหัสยืนยันใหม่แล้ว กรุณาตรวจสอบอีเมล");
+};
+</script>
+</body>
+</html>

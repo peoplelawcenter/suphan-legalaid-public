@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="th"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<title>จัดการเว็บไซต์ — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<link rel="icon" href="/assets/logo-pao.png"><link rel="stylesheet" href="/assets/fonts/fonts.css">
+<!-- 6 ต.ค. 69 (สเปก docs/WEBSITE-SPEC.md ข้อ 5.4): ตัวแก้ข้อความ Quill 2.0.3 จาก jsDelivr — pin เวอร์ชัน + SRI คำนวณจากไฟล์จริง
+     (ดาวน์โหลด dist/quill.js + dist/quill.snow.css แล้ว sha384 — ไม่ได้เดา) · หน้านี้ไม่มี CSP (CSP ใส่เฉพาะหน้าสาธารณะใน api/site.js)
+     ⛔ เปลี่ยนเวอร์ชันต้องคำนวณ integrity ใหม่ทั้งคู่ ไม่งั้นเบราว์เซอร์ไม่โหลดไฟล์ → ตัวแก้ข้อความไม่ขึ้น (หน้าแจ้งผู้ใช้และไม่ให้บันทึก) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" integrity="sha384-ecIckRi4QlKYya/FQUbBUjS4qp65jF/J87Guw5uzTbO1C1Jfa/6kYmd6dXUF6D7i" crossorigin="anonymous">
+<link rel="stylesheet" href="/cms.css">
+<!-- อัปโหลดไฟล์ตรงไป Supabase Storage ด้วย signed URL แบบเดียวกับ broadcast.html (คีย์ที่ใช้คือ anon key — ไม่ใช่ความลับ) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js" integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js" integrity="sha384-utBUCeG4SYaCm4m7GQZYr8Hy8Fpy3V4KGjBZaf4WTKOcwhCYpt/0PfeEe3HNlwx8" crossorigin="anonymous"></script>
+<script type="module" src="/cms.js"></script>
+</head><body>
+<a class="skip" href="#main">ข้ามไปเนื้อหาหลัก</a>
+<div id="loading" class="state" role="status"><img src="/assets/logo-pao.png" alt="" width="84" height="84"><p>กำลังโหลดระบบจัดการเว็บไซต์…</p></div>
+<div id="denied" class="state" hidden><img src="/assets/logo-pao.png" alt="" width="72" height="72"><h1>ไม่สามารถเข้าใช้งานได้</h1><p id="deniedMsg">โปรดติดต่อผู้ดูแลระบบ</p><p class="state-actions"><button id="retryBtn" class="btn primary" type="button" hidden>ลองอีกครั้ง</button><a class="btn ghost" href="/staff.html">← กลับหน้าหลังบ้าน</a></p></div>
+<div id="app" hidden>
+  <header class="top">
+    <a class="brand" href="#overview"><img src="/assets/logo-pao.png" alt="" width="44" height="44"><span><b>จัดการเว็บไซต์</b><small id="who"></small></span></a>
+    <nav class="top-actions" aria-label="ทางลัด">
+      <a class="btn ghost small" href="/staff.html"><span aria-hidden="true">←</span> หลังบ้าน<span class="long">เรื่อง</span></a>
+      <a class="btn ghost small" href="/" target="_blank" rel="noopener">ดูหน้าเว็บ <span aria-hidden="true">↗</span></a>
+      <button id="logout" class="btn ghost small" type="button">ออกจากระบบ</button>
+    </nav>
+  </header>
+  <div class="shell">
+    <nav id="nav" class="nav" aria-label="เมนูจัดการเว็บไซต์">
+      <a href="#overview" data-sec="overview">ภาพรวม</a>
+      <a href="#banners" data-sec="banners">แบนเนอร์</a>
+      <a href="#news" data-sec="news">ข่าว / กิจกรรม / ประกาศ</a>
+      <a href="#knowledge" data-sec="knowledge">ความรู้กฎหมาย</a>
+      <a href="#faqs" data-sec="faqs">คำถามที่พบบ่อย</a>
+      <a href="#docs" data-sec="docs">เอกสารดาวน์โหลด</a>
+      <a href="#people" data-sec="people">บุคลากร</a>
+      <a href="#pages" data-sec="pages">หน้าเนื้อหา</a>
+      <a href="#links" data-sec="links">ลิงก์และโซเชียล</a>
+      <a href="#config" data-sec="config">ตั้งค่าเว็บไซต์</a>
+      <a href="#audit" data-sec="audit">ประวัติการแก้ไข</a>
+    </nav>
+    <main id="main" tabindex="-1"><div id="content"></div></main>
+  </div>
+</div>
+<div id="notice" class="toasts" aria-live="polite"></div>
+<dialog id="askDlg"></dialog>
+</body></html>

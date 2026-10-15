@@ -1,0 +1,45 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+process.env.TZ = "UTC";
+import { normalizeBanner, normalizePost, normalizePage, normalizePerson, normalizeFaq, normalizeDoc, normalizeLinkItem, normalizeReorder, pickStaffPatch, canEditSiteFrom, sniffMedia, pageSlugChangeError, cmsAction } from "../api/_cms.js";
+import { checkboxValue, fromThaiDatetimeLocal, toThaiDatetimeLocal } from "../public/cms-utils.js";
+let n=0;const ok=(v,m)=>{assert.ok(v,m);n++};
+const jpg="site/banner/202610/1790918400000-0123456789abcdef.jpg";
+ok(normalizeBanner({alt_text:"ภาพ",image_path:jpg}).ok,"แบนเนอร์ถูกต้อง");
+ok(!normalizeBanner({alt_text:"",image_path:jpg}).ok,"alt แบนเนอร์บังคับ");
+ok(normalizePost({category:"news",title:"ข่าว",status:"draft",body_html:"<p>เนื้อหา</p>"}).ok,"โพสต์ถูกต้อง");
+ok(normalizePage({slug:"about-us",title:"เกี่ยวกับ",body_html:""}).ok,"หน้า slug ถูกต้อง");
+ok(!normalizePage({slug:"../bad",title:"x"}).ok,"กัน slug ผิดรูปแบบ");
+ok(normalizePerson({group_key:"staff",name:"เจ้าหน้าที่"}).ok,"บุคลากรถูกต้อง");
+ok(normalizeFaq({question:"ถาม",answer_html:"<p>ตอบ</p>"}).ok,"FAQ ถูกต้อง");
+ok(normalizeDoc({title:"แบบฟอร์ม",file_path:"site/doc/202610/1790918400000-0123456789abcdef.pdf",file_type:"application/pdf"}).ok,"เอกสารถูกต้อง");
+ok(normalizeLinkItem({kind:"social",label:"เพจ",url:"https://example.test",icon:"facebook"}).ok,"ลิงก์ถูกต้อง");
+ok(normalizeReorder("pages",["about","cookies"]).ok&&!normalizeReorder("posts",[1]).ok,"จัดลำดับเฉพาะชนิดที่รองรับ");
+ok(canEditSiteFrom("admin",false)&&canEditSiteFrom("staff",true)&&!canEditSiteFrom("staff",false),"สิทธิ์ CMS ถูกต้อง");
+const patch=pickStaffPatch({can_edit_site:true,active:true,evil:true},{isAdmin:true});ok(patch.can_edit_site===true&&patch.active===true&&!('evil'in patch),"รับเฉพาะ staff patch allowlist");
+ok(sniffMedia(Buffer.from([0xff,0xd8,0xff,0xe0]))==="jpg","ตรวจ magic byte JPEG");
+const thaiBanner=normalizeBanner({alt_text:"ภาพ",image_path:jpg,starts_at:"2026-10-01T09:00"});
+ok(thaiBanner.ok&&thaiBanner.row.starts_at==="2026-10-01T02:00:00.000Z","เซิร์ฟเวอร์ถือ datetime-local ที่ไม่มี offset เป็นเวลาไทยแม้รันใต้ TZ=UTC");
+const lowerBoundaryBanner=normalizeBanner({alt_text:"ภาพ",image_path:jpg,starts_at:"2000-01-01T00:00"});
+ok(lowerBoundaryBanner.ok&&lowerBoundaryBanner.row.starts_at==="1999-12-31T17:00:00.000Z","ตรวจปีจากเวลาไทยที่ผู้ใช้กรอก ไม่ใช่ปี UTC หลังแปลง");
+ok(toThaiDatetimeLocal("2026-10-01T02:00:00.000Z")==="2026-10-01T09:00","CMS แสดง ISO เป็นเวลาไทย");
+ok(fromThaiDatetimeLocal("2026-10-01T09:00")==="2026-10-01T09:00:00+07:00","CMS ส่ง datetime-local พร้อม +07:00");
+ok(checkboxValue({},"active")&&checkboxValue({},"published"),"checkbox เปิดใช้งาน/เผยแพร่เริ่มต้นเป็น true");
+ok(!checkboxValue({},"pinned")&&!checkboxValue({},"show_in_menu")&&!checkboxValue({},"show_on_home"),"checkbox อื่นเริ่มต้นเป็น false");
+const sql=fs.readFileSync(new URL('../supabase-migration-15-idempotency-and-cms-transactions.sql',import.meta.url),'utf8');
+for(const fn of ['append_chat_submission','site_cms_save_atomic','site_cms_delete_atomic','site_cms_reorder_atomic','site_cms_config_save_atomic'])ok(sql.includes(`function public.${fn}`),`migration มี ${fn}`);
+ok(/site_cms_save_atomic[\s\S]+insert into public\.site_audit/.test(sql),"save และ audit อยู่ใน RPC transaction เดียว");
+for(const fn of ['append_chat_submission','site_cms_save_atomic','site_cms_delete_atomic','site_cms_reorder_atomic','site_cms_config_save_atomic']){
+  ok(new RegExp(`function public\\.${fn}[\\s\\S]*?set search_path = public[\\s\\S]*?revoke execute on function public\\.${fn}`).test(sql),`${fn} ล็อก search_path และถอนสิทธิ์ public`);
+  ok(new RegExp(`grant execute on function public\\.${fn}[^;]* to service_role`).test(sql),`${fn} ให้เรียกได้ด้วย service_role`);
+}
+// 5 ต.ค. 69 (minor 3): แก้หน้าเดิมแล้วเปลี่ยน slug ไปชนหน้าอื่น = เคยเขียนทับหน้านั้น → ตอนนี้ต้องปฏิเสธก่อนแตะฐานข้อมูล
+ok(pageSlugChangeError({isNew:true,slug:"new-page"})===null,"สร้างหน้าใหม่ไม่ต้องมี originalSlug");
+ok(pageSlugChangeError({isNew:false,slug:"about",originalSlug:"about"})===null,"แก้หน้าเดิม slug เดิมผ่าน");
+ok(/เปลี่ยนชื่อลิงก์/.test(pageSlugChangeError({isNew:false,slug:"history",originalSlug:"service-area"})||""),"แก้หน้าเดิมแล้วเปลี่ยน slug ถูกปฏิเสธ");
+ok(/โหลดหน้า/.test(pageSlugChangeError({isNew:false,slug:"history"})||""),"แก้หน้าเดิมไม่ส่ง originalSlug (cms.js เก่าในแคช) ถูกปฏิเสธ");
+const slugSwap=await cmsAction("cms-save","POST",{type:"pages",item:{slug:"history",title:"ทับ",body_html:"<p>x</p>",originalSlug:"service-area"}},{staffId:1,role:"admin"},{});
+ok(slugSwap.status===400&&slugSwap.body.ok===false&&slugSwap.body.field==="slug"&&/เปลี่ยนชื่อลิงก์/.test(slugSwap.body.error),"cms-save ตอบ 400 ภาษาไทยก่อนเรียกฐานข้อมูล");
+const cmsSrc=fs.readFileSync(new URL('../public/cms.js',import.meta.url),'utf8');
+ok(/spec\.kind\s*===\s*"slug"\s*&&\s*!ctx\.isNew\)\s*input\.readOnly\s*=\s*true/.test(cmsSrc)&&/item\.originalSlug\s*=\s*ctx\.item\.slug/.test(cmsSrc),"cms.js ล็อกช่อง slug ตอนแก้หน้าเดิม + ส่ง originalSlug");
+console.log(`✅ test-cms.mjs ผ่านทั้งหมด (${n} ข้อตรวจ)`);

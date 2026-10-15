@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>ปรึกษาข้อกฎหมาย — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<!-- OG tags (เพิ่ม 18 ก.ย. 69) — noindex ด้านบนกันแค่ Google ทำดัชนี ไม่กันบอทแชร์ลิงก์ LINE/Facebook
+     ที่ดึง og:* ไปแสดงการ์ดตอนแชร์ลิงก์นี้ในแชต (ใช้รูปเดียวกับหน้าแรก ไม่ต้องเรนเดอร์แยกรายหน้า) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<meta property="og:title" content="ปรึกษาข้อกฎหมาย — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<meta property="og:description" content="ปรึกษาข้อกฎหมายกับศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี ฟรี ไม่มีค่าใช้จ่าย" />
+<meta property="og:image" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta property="og:image:secure_url" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี บริการฟรี ไม่มีค่าใช้จ่าย" />
+<meta property="og:url" content="https://suphan-legalaid.vercel.app/consult.html" />
+<meta property="og:locale" content="th_TH" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta name="twitter:image:alt" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<link rel="canonical" href="https://suphan-legalaid.vercel.app/consult.html" />
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/form.css">
+<link rel="icon" href="/assets/logo-pao.png">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>⚖️ ปรึกษาข้อกฎหมาย</h1>
+    <p>ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</p>
+  </div>
+
+  <div id="loading" class="state-box">
+    <div class="icon">⏳</div>
+    <h2>กำลังตรวจสอบลิงก์...</h2>
+  </div>
+
+  <div id="invalid" class="state-box" hidden>
+    <div class="icon">⚠️</div>
+    <h2 id="invalidTitle">ลิงก์ไม่ถูกต้อง</h2>
+    <p id="invalidMsg">กลับไปที่แชตไลน์ แตะปุ่ม "ปรึกษาข้อกฎหมาย" อีกครั้งเพื่อขอลิงก์ใหม่</p>
+  </div>
+
+  <form id="form" class="card" hidden>
+    <label for="name">ชื่อ-นามสกุล *</label>
+    <input type="text" id="name" required maxlength="100" autocomplete="name">
+
+    <label for="phone">เบอร์โทรติดต่อกลับ *</label>
+    <input type="tel" id="phone" required maxlength="15" autocomplete="tel" placeholder="08xxxxxxxx">
+
+    <label for="category">หมวดที่เกี่ยวข้อง</label>
+    <select id="category">
+      <option value="other">อื่นๆ</option>
+      <option value="scam">ถูกโกง / มิจฉาชีพ</option>
+      <option value="debt">หนี้สิน / ถูกทวงหนี้</option>
+      <option value="inheritance">มรดก / พินัยกรรม</option>
+      <option value="labor">จ้างงาน / แรงงาน</option>
+      <option value="divorce">หย่า / ครอบครัว</option>
+      <option value="land">ที่ดิน / บ้าน</option>
+      <option value="criminal">อุบัติเหตุ / คดีอาญา</option>
+    </select>
+
+    <label for="detail">เรื่องที่ต้องการปรึกษา *</label>
+    <textarea id="detail" required maxlength="2000" placeholder="อธิบายเรื่องที่ต้องการปรึกษาโดยละเอียด"></textarea>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="hp" style="display:none" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="pdpa" required>
+      <label for="pdpa">ข้าพเจ้ายินยอมให้ศูนย์ช่วยเหลือประชาชนทางกฎหมายเก็บและใช้ข้อมูลข้างต้นเพื่อการติดต่อกลับและให้คำปรึกษาเท่านั้น ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</label>
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn">ส่งคำขอปรึกษา</button>
+    <p class="disclaimer">ข้อมูลเบื้องต้นเท่านั้น ไม่ใช่คำวินิจฉัยทางกฎหมายเฉพาะคดี เจ้าหน้าที่จะติดต่อกลับเพื่อให้คำปรึกษาโดยละเอียด</p>
+    <p class="disclaimer">การรับเรื่องของศูนย์ฯ ไม่ถือเป็นการรับว่าความ รับดำเนินคดีแทน หรือวินิจฉัยชี้ขาดข้อพิพาท และไม่รับรองว่าจะได้รับความช่วยเหลือหรือการจัดหาทนายความในทุกกรณี (ประกาศ ข้อ 6–7) <a href="/about#notice" target="_blank" rel="noopener">อ่านข้อควรทราบฉบับเต็ม</a></p>
+  </form>
+
+  <div id="success" class="card success-box" hidden>
+    <div class="icon" style="font-size:3rem">✅</div>
+    <h2>ส่งคำขอสำเร็จ</h2>
+    <p>เลขที่เรื่องของท่านคือ</p>
+    <div class="caseno" id="caseNo"></div>
+    <p id="officeHoursNote" style="color:#5A6B85;font-size:0.85rem"></p>
+    <p style="margin-top:14px">เจ้าหน้าที่จะติดต่อกลับตามเบอร์ที่ให้ไว้ ท่านสามารถกลับไปที่แชตไลน์และพิมพ์ "ติดตามสถานะ" เพื่อดูความคืบหน้าได้ทุกเมื่อ</p>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const k = params.get("k") || "";
+const els = {
+  loading: document.getElementById("loading"),
+  invalid: document.getElementById("invalid"),
+  invalidTitle: document.getElementById("invalidTitle"),
+  invalidMsg: document.getElementById("invalidMsg"),
+  form: document.getElementById("form"),
+  success: document.getElementById("success"),
+  caseNo: document.getElementById("caseNo"),
+  officeHoursNote: document.getElementById("officeHoursNote"),
+  submitBtn: document.getElementById("submitBtn"),
+};
+
+function show(el) { el.hidden = false; }
+function hide(el) { el.hidden = true; }
+
+async function verify() {
+  if (!k) return showInvalid("ไม่พบลิงก์", "กรุณาเปิดหน้านี้จากปุ่มในแชตไลน์เท่านั้น");
+  try { if (sessionStorage.getItem("lg-submitted-" + k)) { hide(els.loading); return showInvalid("ส่งคำร้องนี้ไปแล้ว", "ระบบบันทึกคำร้องนี้เรียบร้อยก่อนหน้านี้แล้ว ไม่ต้องส่งซ้ำ — ตรวจสอบสถานะได้จากแชตไลน์"); } } catch {}
+  try {
+    const r = await fetch(`/api/form?action=verify&type=consult&k=${encodeURIComponent(k)}`);
+    const d = await r.json();
+    hide(els.loading);
+    if (!d.ok) return showInvalid(d.expired ? "ลิงก์หมดอายุแล้ว" : "ลิงก์ไม่ถูกต้อง", d.reason || "");
+    show(els.form);
+  } catch (e) {
+    hide(els.loading);
+    showInvalid("เชื่อมต่อไม่สำเร็จ", "กรุณาลองใหม่อีกครั้ง");
+  }
+}
+function showInvalid(title, msg) {
+  els.invalidTitle.textContent = title;
+  els.invalidMsg.textContent = msg || "กลับไปที่แชตไลน์ แตะปุ่ม \"ปรึกษาข้อกฎหมาย\" อีกครั้งเพื่อขอลิงก์ใหม่";
+  show(els.invalid);
+}
+
+els.form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.submitBtn.disabled = true;
+  els.submitBtn.textContent = "กำลังส่ง...";
+  try {
+    const r = await fetch("/api/form", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        k, formType: "consult",
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        category: document.getElementById("category").value,
+        detail: document.getElementById("detail").value,
+        pdpaConsent: document.getElementById("pdpa").checked,
+        honeypot: document.getElementById("hp").checked,
+      }),
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || "ส่งไม่สำเร็จ");
+    hide(els.form);
+    els.caseNo.textContent = d.caseNo;
+    els.officeHoursNote.textContent = d.officeHours ? "" : "ขณะนี้อยู่นอกเวลาทำการ เจ้าหน้าที่จะติดต่อกลับในวันทำการถัดไป";
+    try { sessionStorage.setItem("lg-submitted-" + k, "1"); } catch {}
+    show(els.success);
+  } catch (err) {
+    alert(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+    els.submitBtn.disabled = false;
+    els.submitBtn.textContent = "ส่งคำขอปรึกษา";
+  }
+});
+
+verify();
+</script>
+</body>
+</html>

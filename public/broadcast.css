@@ -1,0 +1,143 @@
+/* public/broadcast.css — หน้าส่งโปสเตอร์ข่าว ปชส. ถึงเพื่อนทุกคน (broadcast.html · เพิ่ม 24 ก.ย. 69)
+   ต่อยอดจาก staff.css (โทเคนสี/navbar/ปุ่ม/การ์ดชุดเดียวกัน) — mobile-first: มือถือเรียงคอลัมน์เดียว
+   กรอก → ตัวอย่าง → ปุ่มส่ง · จอกว้าง ≥ 900px ตัวอย่างแชตอยู่ขวาติดจอขณะเลื่อนกรอก */
+
+.navbar .back-link { text-decoration: none; min-width: 44px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+@media (max-width: 480px) { .hide-sm { display: none; } } /* มือถือ: ปุ่มกลับเหลือลูกศร navbar จะได้ไม่ตกเป็น 2 แถว */
+.page-head { margin: 4px 0 12px; }
+.page-head h1 { margin: 0; font-size: 1.25rem; color: var(--navy); line-height: 1.35; }
+.page-head p { margin: 4px 0 0; font-size: 0.85rem; color: var(--gray); line-height: 1.5; }
+
+/* ═══ ตัวเลขโควตา/ผู้รับ ═══ */
+.bc-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.bc-stat { background: var(--white); border-radius: 10px; padding: 10px 8px; text-align: center; box-shadow: 0 1px 4px rgba(11,46,109,0.08); min-width: 0; }
+.bc-stat .num { font-size: 1.3rem; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+.bc-stat .lab { font-size: 0.7rem; color: var(--gray); margin-top: 2px; line-height: 1.35; }
+.bc-stat.warn .num { color: #8a6d00; }
+.bc-stat.bad .num { color: var(--danger); }
+.bc-stats-note { font-size: 0.72rem; color: #8a94a6; margin: -4px 2px 12px; line-height: 1.5; }
+
+/* ═══ เลย์เอาต์หลัก ═══ */
+.bc-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.bc-card { background: var(--white); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(11,46,109,0.08); }
+.bc-step { margin-bottom: 18px; }
+.bc-step:last-child { margin-bottom: 0; }
+.bc-step-title { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--navy); font-size: 0.95rem; margin-bottom: 8px; }
+.bc-step-title .n { width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: var(--white); font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.bc-step-title .opt { font-weight: 400; color: #8a94a6; font-size: 0.78rem; }
+.bc-hint { font-size: 0.75rem; color: #8a94a6; margin-top: 6px; line-height: 1.5; }
+
+@media (min-width: 900px) {
+  /* แถวที่ 2 = 1fr: ตัวอย่างแชตที่สูงกว่าฟอร์มจะดันพื้นที่เหลือไปไว้ใต้ปุ่มส่ง ไม่ใช่เว้นช่องว่างระหว่างฟอร์มกับปุ่ม */
+  .bc-layout { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "form preview" "actions preview"; align-items: start; }
+  .bc-form { grid-area: form; }
+  .bc-actions { grid-area: actions; }
+  .bc-preview { grid-area: preview; position: sticky; top: 80px; }
+}
+
+/* ═══ เลือกรูป ═══ */
+.dropzone {
+  border: 2px dashed #b9c7dc; border-radius: 12px; background: var(--light); padding: 22px 14px;
+  text-align: center; cursor: pointer; color: var(--navy); transition: border-color .15s, background .15s;
+}
+.dropzone:hover, .dropzone.over { border-color: var(--navy); background: #dfeaf8; }
+.dropzone:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.dropzone .big { font-size: 2rem; line-height: 1; }
+.dropzone .t1 { font-weight: 700; margin-top: 6px; font-size: 0.95rem; }
+.dropzone .t2 { font-size: 0.75rem; color: var(--gray); margin-top: 4px; }
+.dropzone[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+
+.thumbs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+@media (min-width: 560px) { .thumbs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.thumb { position: relative; border-radius: 10px; overflow: hidden; background: #eef1f6; border: 1px solid var(--line); }
+.thumb img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.thumb .order { position: absolute; top: 6px; left: 6px; background: rgba(11,46,109,.85); color: #fff; font-size: 0.7rem; font-weight: 700; border-radius: 10px; padding: 2px 8px; }
+.thumb .meta { font-size: 0.66rem; color: var(--gray); padding: 5px 7px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thumb .tools { display: flex; gap: 4px; padding: 5px 6px 6px; }
+.thumb .tools button { flex: 1; min-height: 34px; border: 1px solid #d7dee8; background: var(--white); border-radius: 7px; font-size: 0.8rem; cursor: pointer; color: #3d4a61; font-family: inherit; }
+.thumb .tools button:disabled { opacity: .35; cursor: default; }
+.thumb .tools .rm { color: var(--danger); }
+.thumb.busy::after { content: "กำลังเตรียมรูป…"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.8); font-size: 0.75rem; color: var(--navy); font-weight: 700; }
+
+.bc-textarea { min-height: 96px; }
+.bc-input { width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid #c7d3e6; font-family: inherit; font-size: 0.95rem; background: var(--white); }
+.bc-textarea:focus, .bc-input:focus { outline: 2px solid var(--navy); outline-offset: 0; border-color: var(--navy); }
+.counter { text-align: right; font-size: 0.7rem; color: #8a94a6; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.counter.over { color: var(--danger); font-weight: 700; }
+.check-row { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; color: var(--text); cursor: pointer; line-height: 1.45; }
+.check-row input { width: 20px; height: 20px; margin: 1px 0 0; flex: 0 0 auto; accent-color: var(--navy); }
+
+/* ═══ ปุ่มส่ง + ข้อความสถานะ ═══ */
+.bc-actions .btn { width: 100%; min-height: 48px; font-size: 0.98rem; font-weight: 700; }
+.bc-actions .btn + .btn { margin-top: 10px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: #1c2530; }
+.quota-box { border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.55; margin-bottom: 12px; background: var(--light); color: var(--navy-dark); }
+.quota-box.warn { background: #FBF3E1; border: 1px solid var(--gold); }
+.quota-box.bad { background: #fde2e1; border: 1px solid var(--danger); color: #7a1a14; }
+.link-hint { font-size: 0.75rem; color: var(--gray); margin-top: 8px; text-align: center; line-height: 1.5; }
+.link-hint a { color: var(--navy); }
+.notice { border-radius: 10px; padding: 11px 13px; font-size: 0.86rem; margin-top: 12px; line-height: 1.55; }
+.notice.ok { background: #E8F5EC; border: 1px solid var(--ok); color: #14532d; }
+.notice.err { background: #fde2e1; border: 1px solid var(--danger); color: #7a1a14; }
+.notice.info { background: var(--light); border: 1px solid #c7d3e6; color: var(--navy-dark); }
+
+.sent-card { text-align: center; padding: 26px 16px; }
+.sent-card .big { font-size: 2.6rem; }
+.sent-card h2 { margin: 6px 0 4px; color: var(--ok); font-size: 1.15rem; }
+.sent-card p { margin: 4px 0; color: var(--gray); font-size: 0.86rem; line-height: 1.55; }
+.sent-card .btn { margin-top: 14px; min-height: 46px; padding: 10px 22px; font-weight: 700; }
+
+/* ═══ ตัวอย่างหน้าแชตไลน์ (ล้อหน้าตาแชต LINE ให้แอดมินเห็นภาพเดียวกับผู้รับก่อนส่ง) ═══ */
+.preview-title { font-weight: 700; color: var(--navy); font-size: 0.95rem; margin-bottom: 8px; }
+.chat {
+  background: #8fa9cf; border-radius: 16px; padding: 14px 12px 18px; min-height: 240px;
+  display: flex; flex-direction: column; gap: 8px; overflow: hidden;
+}
+.chat-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.chat-top img { width: 34px; height: 34px; border-radius: 50%; background: #fff; object-fit: contain; flex: 0 0 auto; }
+.chat-top .oa { font-size: 0.72rem; color: #fff; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.chat-row { padding-left: 42px; }
+.chat-img { display: block; max-width: 78%; max-height: 360px; border-radius: 14px; background: #dfe7f3; }
+.chat-card { width: 84%; max-width: 330px; background: #fff; border-radius: 14px; overflow: hidden; }
+.chat-card .cb { padding: 14px 16px; }
+.chat-card .org { font-size: 0.72rem; font-weight: 700; color: var(--navy); line-height: 1.45; }
+.chat-card hr { border: none; border-top: 1px solid var(--gold); margin: 10px 0; }
+.chat-card .cap { font-size: 0.86rem; color: #1c2530; white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
+.chat-card .cap.muted { color: var(--gray); }
+.chat-card .cbtn { margin: 0 12px 12px; background: var(--navy); color: #fff; border-radius: 8px; text-align: center; padding: 9px; font-size: 0.82rem; font-weight: 600; }
+.chat-empty { color: #eef3fb; font-size: 0.85rem; text-align: center; margin: auto 0; padding: 30px 10px; line-height: 1.6; }
+.chat-time { font-size: 0.62rem; color: #eef3fb; padding-left: 42px; }
+
+/* ═══ ประวัติการส่ง ═══ */
+.history { display: flex; flex-direction: column; gap: 8px; }
+.hrow { display: flex; gap: 10px; align-items: flex-start; background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.hrow img { width: 58px; height: 58px; border-radius: 8px; object-fit: cover; background: #eef1f6; flex: 0 0 auto; }
+.hrow .hmid { flex: 1; min-width: 0; }
+.hrow .hline1 { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.78rem; color: var(--gray); }
+.hrow .hcap { font-size: 0.85rem; color: var(--text); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.45; }
+.hrow .herr { font-size: 0.75rem; color: var(--danger); margin-top: 4px; }
+.tag { font-size: 0.66rem; font-weight: 700; border-radius: 20px; padding: 2px 9px; white-space: nowrap; }
+.tag.all { background: #dce9ff; color: #1a4fa0; }
+.tag.test { background: #eef1f6; color: var(--gray); }
+.tag.sent { background: #d8f0e0; color: var(--ok); }
+.tag.failed { background: #fde2e1; color: var(--danger); }
+
+/* ═══ หน้าต่างยืนยันส่งจริง ═══ */
+.modal-bg { position: fixed; inset: 0; background: rgba(15,25,45,.6); z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+.modal { background: var(--white); width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 18px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+@media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: 16px; } }
+.modal h2 { margin: 0 0 4px; font-size: 1.1rem; color: var(--navy); }
+.modal .sub { font-size: 0.82rem; color: var(--gray); margin: 0 0 12px; }
+.modal-thumbs { display: flex; gap: 6px; margin-bottom: 12px; }
+.modal-thumbs img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; background: #eef1f6; }
+.sum { display: grid; grid-template-columns: auto 1fr; gap: 7px 12px; font-size: 0.86rem; margin-bottom: 12px; }
+.sum .k { color: #8a94a6; }
+.sum .v { color: var(--text); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.modal .warnline { background: #FBF3E1; border: 1px solid var(--gold); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: #4a3a08; line-height: 1.5; margin-bottom: 12px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 14px; }
+.modal-btns .btn { flex: 1; min-height: 48px; font-weight: 700; }
+
+.spin { display: inline-block; width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -0.15em; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } }

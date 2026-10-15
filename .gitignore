@@ -1,0 +1,29 @@
+# ── ของส่วนตัว/ลับ ห้าม commit เด็ดขาด ──
+node_modules/
+.vercel/
+.env
+.env.*
+_private/
+email pass.txt
+# facebook.txt (คีย์แอป Facebook) เคยหลุดรอด — กันไฟล์ .txt ที่ root ทั้งหมดเหมือน .vercelignore (6 ต.ค. 69 · robots.txt อยู่ใน public/ ไม่โดน)
+/*.txt
+*.token
+*.key
+
+# ── ไฟล์อ้างอิงงานออกแบบที่ไม่ใช่ asset จริงของเว็บ ──
+0df4672e-*.png
+808763901_*.jpg
+809544122_*.jpg
+
+# ── log/output ชั่วคราว ──
+*.log
+scripts/_out-*
+.DS_Store
+Thumbs.db
+.vercel-global-config/
+supabase/.temp/
+
+.vercel
+
+# ภาพอ้างอิง/ตัวอย่างที่รากโปรเจกต์ไม่ใช่ส่วนของระบบ (บอสสั่งเอาออก 14 ต.ค. 69) — ไม่ขึ้น git (ตรงกับ /*.jpg ใน .vercelignore)
+/*.jpg

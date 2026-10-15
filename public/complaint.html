@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>ฝากเรื่องร้องเรียน — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<!-- OG tags (เพิ่ม 18 ก.ย. 69) — noindex ด้านบนกันแค่ Google ทำดัชนี ไม่กันบอทแชร์ลิงก์ LINE/Facebook
+     ที่ดึง og:* ไปแสดงการ์ดตอนแชร์ลิงก์นี้ในแชต (ใช้รูปเดียวกับหน้าแรก ไม่ต้องเรนเดอร์แยกรายหน้า) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<meta property="og:title" content="ฝากเรื่องร้องเรียน — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<meta property="og:description" content="ฝากเรื่องร้องเรียนกับศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี ฟรี ไม่มีค่าใช้จ่าย" />
+<meta property="og:image" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta property="og:image:secure_url" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี บริการฟรี ไม่มีค่าใช้จ่าย" />
+<meta property="og:url" content="https://suphan-legalaid.vercel.app/complaint.html" />
+<meta property="og:locale" content="th_TH" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta name="twitter:image:alt" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<link rel="canonical" href="https://suphan-legalaid.vercel.app/complaint.html" />
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/form.css">
+<link rel="icon" href="/assets/logo-pao.png">
+<!-- ใช้เฉพาะฟังก์ชันอัปโหลดไฟล์ตรงไป Supabase Storage ด้วย signed URL (ดู api/_evidence.js) —
+     คีย์ที่ฝังในหน้านี้คือ anon/publishable key ตั้งใจให้เปิดเผยได้ ไม่ใช่ service key
+     bucket ไม่มี public policy การอัปโหลดอนุญาตเฉพาะไฟล์ที่มี token ที่เซ็นจากเซิร์ฟเวอร์เราเท่านั้น
+     integrity hash คำนวณจากไฟล์จริงเวอร์ชัน 2.116.0 (15 ก.ย. 69) — ถ้าจะเปลี่ยนเวอร์ชัน (ต้องตรงกับ
+     @supabase/supabase-js ใน package.json เสมอ) ต้องคำนวณ sha384 ใหม่ ไม่ใช่แก้เลขเวอร์ชันแล้วปล่อยแฮชเดิม
+     ไว้ (ไม่งั้นเบราว์เซอร์บล็อกสคริปต์ทั้งไฟล์เงียบๆ) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
+  integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>📝 ฝากเรื่องร้องเรียน</h1>
+    <p>ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</p>
+  </div>
+
+  <div id="loading" class="state-box">
+    <div class="icon">⏳</div>
+    <h2>กำลังตรวจสอบลิงก์...</h2>
+  </div>
+
+  <div id="invalid" class="state-box" hidden>
+    <div class="icon">⚠️</div>
+    <h2 id="invalidTitle">ลิงก์ไม่ถูกต้อง</h2>
+    <p id="invalidMsg">กลับไปที่แชตไลน์ แตะปุ่ม "ฝากเรื่องร้องเรียน" อีกครั้งเพื่อขอลิงก์ใหม่</p>
+  </div>
+
+  <form id="form" class="card" hidden>
+    <div class="checkbox-row">
+      <input type="checkbox" id="anon">
+      <label for="anon">ไม่ประสงค์ออกนาม (ไม่ระบุชื่อ-นามสกุล)</label>
+    </div>
+
+    <label for="name" id="nameLabel">ชื่อ-นามสกุลผู้ร้อง *</label>
+    <input type="text" id="name" maxlength="100" autocomplete="name">
+
+    <label for="phone">เบอร์โทรติดต่อกลับ (ถ้ามี)</label>
+    <input type="tel" id="phone" maxlength="15" autocomplete="tel" placeholder="08xxxxxxxx">
+    <p class="hint">หากไม่ระบุเบอร์ เจ้าหน้าที่จะติดต่อกลับผ่านไลน์ที่ใช้เปิดฟอร์มนี้</p>
+
+    <label for="category">หมวดที่เกี่ยวข้อง</label>
+    <select id="category">
+      <option value="other">อื่นๆ</option>
+      <option value="scam">ถูกโกง / มิจฉาชีพ</option>
+      <option value="debt">หนี้สิน / ถูกทวงหนี้</option>
+      <option value="inheritance">มรดก / พินัยกรรม</option>
+      <option value="labor">จ้างงาน / แรงงาน</option>
+      <option value="divorce">หย่า / ครอบครัว</option>
+      <option value="land">ที่ดิน / บ้าน</option>
+      <option value="criminal">อุบัติเหตุ / คดีอาญา</option>
+    </select>
+
+    <label for="detail">เรื่องที่ร้องเรียน *</label>
+    <textarea id="detail" required maxlength="2000" placeholder="อธิบายเรื่องที่ร้องเรียนโดยละเอียด"></textarea>
+
+    <label for="respondent">ผู้ถูกร้อง / หน่วยงานที่เกี่ยวข้อง (ถ้ามี)</label>
+    <input type="text" id="respondent" maxlength="200">
+
+    <label for="demand">ข้อเรียกร้อง (ถ้ามี)</label>
+    <input type="text" id="demand" maxlength="500">
+
+    <label>แนบหลักฐาน (รูปภาพ/PDF ไม่เกิน 3 ไฟล์ ไฟล์ละไม่เกิน 8MB)</label>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,application/pdf" multiple>
+    <div class="filelist" id="fileList"></div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="hp" style="display:none" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="pdpa" required>
+      <label for="pdpa">ข้าพเจ้ายินยอมให้ศูนย์ช่วยเหลือประชาชนทางกฎหมายเก็บและใช้ข้อมูลข้างต้นเพื่อการติดต่อกลับและดำเนินการตามเรื่องร้องเรียน ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</label>
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn">ส่งเรื่องร้องเรียน</button>
+    <p class="disclaimer">ข้อมูลของท่านจะถูกเก็บเป็นความลับ ใช้เพื่อการติดต่อกลับและดำเนินการตามเรื่องร้องเรียนเท่านั้น</p>
+    <p class="disclaimer">การรับเรื่องของศูนย์ฯ ไม่ถือเป็นการรับว่าความ รับดำเนินคดีแทน หรือวินิจฉัยชี้ขาดข้อพิพาท และไม่รับรองว่าจะได้รับความช่วยเหลือหรือการจัดหาทนายความในทุกกรณี (ประกาศ ข้อ 6–7) <a href="/about#notice" target="_blank" rel="noopener">อ่านข้อควรทราบฉบับเต็ม</a></p>
+  </form>
+
+  <div id="success" class="card success-box" hidden>
+    <div class="icon" style="font-size:3rem">✅</div>
+    <h2>ส่งเรื่องร้องเรียนสำเร็จ</h2>
+    <p>เลขที่เรื่องของท่านคือ</p>
+    <div class="caseno" id="caseNo"></div>
+    <p id="officeHoursNote" style="color:#5A6B85;font-size:0.85rem"></p>
+    <p style="margin-top:14px">เจ้าหน้าที่จะติดต่อกลับ ท่านสามารถกลับไปที่แชตไลน์และพิมพ์ "ติดตามสถานะ" เพื่อดูความคืบหน้าได้ทุกเมื่อ</p>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const k = params.get("k") || "";
+const els = {
+  loading: document.getElementById("loading"),
+  invalid: document.getElementById("invalid"),
+  invalidTitle: document.getElementById("invalidTitle"),
+  invalidMsg: document.getElementById("invalidMsg"),
+  form: document.getElementById("form"),
+  success: document.getElementById("success"),
+  caseNo: document.getElementById("caseNo"),
+  officeHoursNote: document.getElementById("officeHoursNote"),
+  submitBtn: document.getElementById("submitBtn"),
+  anon: document.getElementById("anon"),
+  name: document.getElementById("name"),
+  nameLabel: document.getElementById("nameLabel"),
+  fileInput: document.getElementById("fileInput"),
+  fileList: document.getElementById("fileList"),
+};
+
+function show(el) { el.hidden = false; }
+function hide(el) { el.hidden = true; }
+function showInvalid(title, msg) {
+  els.invalidTitle.textContent = title;
+  els.invalidMsg.textContent = msg || "กลับไปที่แชตไลน์ แตะปุ่ม \"ฝากเรื่องร้องเรียน\" อีกครั้งเพื่อขอลิงก์ใหม่";
+  show(els.invalid);
+}
+
+els.anon.addEventListener("change", () => {
+  if (els.anon.checked) {
+    els.name.value = ""; els.name.removeAttribute("required"); els.name.disabled = true;
+    els.nameLabel.textContent = "ชื่อ-นามสกุลผู้ร้อง (ไม่ระบุ)";
+  } else {
+    els.name.disabled = false; els.name.setAttribute("required", "required");
+    els.nameLabel.textContent = "ชื่อ-นามสกุลผู้ร้อง *";
+  }
+});
+
+/* ═══ อัปโหลดไฟล์หลักฐาน — ขอ signed upload URL จากเซิร์ฟเวอร์ก่อน แล้วอัปโหลดตรงไป Supabase
+   (Vercel function รับ body ได้แค่ 4.5MB จึงส่งไฟล์ผ่าน /api/form ตรงๆ ไม่ได้) ═══ */
+const MAX_FILES = 3, MAX_BYTES = 8 * 1024 * 1024;
+let sbClient = null;
+const uploaded = []; // [{path, name}]
+
+async function initSupabase() {
+  const r = await fetch("/api/form?action=config");
+  const cfg = await r.json();
+  sbClient = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+}
+
+els.fileInput.addEventListener("change", async () => {
+  const files = Array.from(els.fileInput.files).slice(0, MAX_FILES - uploaded.length);
+  for (const file of files) {
+    const row = document.createElement("div");
+    row.className = "file-row";
+    row.textContent = `⏳ ${file.name}`;
+    els.fileList.appendChild(row);
+
+    if (file.size > MAX_BYTES) { row.classList.add("error"); row.textContent = `❌ ${file.name} — ไฟล์ใหญ่เกิน 8MB`; continue; }
+    if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) { row.classList.add("error"); row.textContent = `❌ ${file.name} — ชนิดไฟล์ไม่รองรับ`; continue; }
+
+    try {
+      if (!sbClient) await initSupabase();
+      const ur = await fetch("/api/form?action=upload-url", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ k, formType: "complaint", contentType: file.type }),
+      });
+      const ud = await ur.json();
+      if (!ud.ok) throw new Error(ud.error || "ขอลิงก์อัปโหลดไม่สำเร็จ");
+
+      const { error } = await sbClient.storage.from("evidence").uploadToSignedUrl(ud.path, ud.token, file);
+      if (error) throw error;
+
+      uploaded.push({ path: ud.path, name: file.name });
+      row.textContent = `✅ ${file.name}`;
+      const rm = document.createElement("button");
+      rm.type = "button"; rm.className = "remove"; rm.textContent = "ลบ";
+      rm.onclick = () => { row.remove(); const i = uploaded.findIndex((u) => u.path === ud.path); if (i >= 0) uploaded.splice(i, 1); };
+      row.appendChild(rm);
+    } catch (e) {
+      row.classList.add("error");
+      row.textContent = `❌ ${file.name} — อัปโหลดไม่สำเร็จ`;
+      console.error(e);
+    }
+  }
+  els.fileInput.value = "";
+});
+
+async function verify() {
+  if (!k) return showInvalid("ไม่พบลิงก์", "กรุณาเปิดหน้านี้จากปุ่มในแชตไลน์เท่านั้น");
+  // กันส่งซ้ำถ้ากด "ย้อนกลับ" แล้วโหลดหน้าเดิมซ้ำหลังส่งสำเร็จไปแล้ว (ลิงก์ ?k= เดิมยังใช้ยื่นซ้ำได้ภายใน
+  // เวลาหมดอายุเดิม — พบจากรีวิวความปลอดภัย 18 ก.ย. 69) กันได้แค่ในเบราว์เซอร์/แท็บเดียวกันเท่านั้น
+  try { if (sessionStorage.getItem("lg-submitted-" + k)) { hide(els.loading); return showInvalid("ส่งคำร้องนี้ไปแล้ว", "ระบบบันทึกคำร้องนี้เรียบร้อยก่อนหน้านี้แล้ว ไม่ต้องส่งซ้ำ — ตรวจสอบสถานะได้จากแชตไลน์"); } } catch {}
+  try {
+    const r = await fetch(`/api/form?action=verify&type=complaint&k=${encodeURIComponent(k)}`);
+    const d = await r.json();
+    hide(els.loading);
+    if (!d.ok) return showInvalid(d.expired ? "ลิงก์หมดอายุแล้ว" : "ลิงก์ไม่ถูกต้อง", d.reason || "");
+    show(els.form);
+  } catch (e) {
+    hide(els.loading);
+    showInvalid("เชื่อมต่อไม่สำเร็จ", "กรุณาลองใหม่อีกครั้ง");
+  }
+}
+
+els.form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.submitBtn.disabled = true;
+  els.submitBtn.textContent = "กำลังส่ง...";
+  try {
+    const r = await fetch("/api/form", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        k, formType: "complaint",
+        isAnonymous: els.anon.checked,
+        name: els.name.value,
+        phone: document.getElementById("phone").value,
+        category: document.getElementById("category").value,
+        detail: document.getElementById("detail").value,
+        respondent: document.getElementById("respondent").value,
+        demand: document.getElementById("demand").value,
+        evidencePaths: uploaded.map((u) => u.path),
+        pdpaConsent: document.getElementById("pdpa").checked,
+        honeypot: document.getElementById("hp").checked,
+      }),
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || "ส่งไม่สำเร็จ");
+    hide(els.form);
+    els.caseNo.textContent = d.caseNo;
+    els.officeHoursNote.textContent = d.officeHours ? "" : "ขณะนี้อยู่นอกเวลาทำการ เจ้าหน้าที่จะติดต่อกลับในวันทำการถัดไป";
+    try { sessionStorage.setItem("lg-submitted-" + k, "1"); } catch {}
+    show(els.success);
+  } catch (err) {
+    alert(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+    els.submitBtn.disabled = false;
+    els.submitBtn.textContent = "ส่งเรื่องร้องเรียน";
+  }
+});
+
+verify();
+</script>
+</body>
+</html>

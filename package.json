@@ -1,0 +1,47 @@
+{
+  "name": "suphan-legalaid",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "description": "ศูนย์ช่วยเหลือประชาชนทางกฎหมาย (สภาทนายความจังหวัดสุพรรณบุรี ร่วมกับ อบจ.สุพรรณบุรี) — LINE OA + เว็บฟอร์ม + หลังบ้านเจ้าหน้าที่",
+  "scripts": {
+    "_note_test": "ตรวจออฟไลน์ทั้งหมด ไม่ต้องมีคีย์/ไม่ต่อเน็ต — รันก่อน deploy ทุกครั้ง (npm test)",
+    "test": "node scripts/test-cards.mjs && node scripts/test-keywords.mjs && node scripts/test-formauth.mjs && node scripts/test-staffauth.mjs && node scripts/test-avatar.mjs && node scripts/test-staff-ui.mjs && node scripts/test-oauth.mjs && node scripts/test-cases.mjs && node scripts/test-broadcast.mjs && node scripts/test-chatgate.mjs && node scripts/test-chatintake.mjs && node scripts/test-richmenu.mjs && node scripts/test-appointment.mjs && node scripts/test-sanitize.mjs && node scripts/test-site.mjs && node scripts/test-cms.mjs && node scripts/test-cms-ui.mjs && node scripts/test-og.mjs && node scripts/test-site-stats.mjs && node scripts/test-staff-response.mjs && node scripts/test-evidence-integrity.mjs",
+    "test:site": "node scripts/test-sanitize.mjs && node scripts/test-site.mjs && node scripts/test-site-stats.mjs",
+    "test:integrity": "node scripts/test-staff-response.mjs && node scripts/test-evidence-integrity.mjs",
+    "test:cms": "node scripts/test-cms.mjs && node scripts/test-cms-ui.mjs",
+    "_note_validate": "ส่งทุกข้อความ/การ์ดไปให้ LINE ตรวจรูปแบบ (endpoint validate — ไม่ส่งถึงใคร) ต้องตั้ง env LINE_CHANNEL_ACCESS_TOKEN ก่อน",
+    "validate-live": "node scripts/validate-live.mjs",
+    "_note_infographics": "เรนเดอร์ภาพวิธีขอรับบริการ 3 ภาพ + ภาพหัวการ์ดต้อนรับ (Playwright) แล้ว commit — แก้ข้อมูลใน api/_serviceinfo.js แล้วต้องรันใหม่ + เปลี่ยน ASSET_VERSION",
+    "render-infographics": "node scripts/render-infographics.mjs",
+    "_note_smoke": "ยิงคำสั่งจริงเข้า webhook หลัง deploy — ต้องตั้ง LINE_CHANNEL_SECRET ก่อน ห้ามยิงเข้าประชาชนจริง (npm run smoke)",
+    "smoke": "node scripts/smoke.mjs",
+    "_note_richmenu": "เรนเดอร์รูป Rich Menu เป็น PNG นิ่งด้วย Playwright แล้ว commit เข้า repo (รันตอน dev เท่านั้น)",
+    "render-richmenu": "node scripts/render-richmenu.mjs",
+    "_note_poster": "เรนเดอร์ป้าย QR หน้าเคาน์เตอร์เป็น PNG นิ่งด้วย Playwright+qrcode แล้ว commit เข้า repo (รันตอน dev เท่านั้น)",
+    "render-poster": "node scripts/render-poster.mjs",
+    "_note_cover": "เรนเดอร์รูปปกโปรไฟล์ LINE OA (1080x878) เป็น PNG นิ่งด้วย Playwright แล้ว commit เข้า repo (รันตอน dev เท่านั้น)",
+    "render-cover": "node scripts/render-cover.mjs",
+    "_note_icon": "เรนเดอร์รูปโปรไฟล์วงกลม LINE OA (1000x1000) เป็น PNG นิ่งด้วย Playwright แล้ว commit เข้า repo (รันตอน dev เท่านั้น)",
+    "render-icon": "node scripts/render-icon.mjs",
+    "_note_og": "เรนเดอร์รูป Open Graph (1200x630) เป็น public/assets/og-legal-aid-v2.png ด้วย Playwright แล้ว commit เข้า repo (รันตอน dev เท่านั้น)",
+    "render-og": "node scripts/render-og.mjs",
+    "test:backup": "node scripts/test-backup.mjs"
+  },
+  "_note_deps": "ห้ามใช้ latest/^ — pin ทุกตัว (บทเรียนจากระบบสำนักปลัด: Vercel ติดตั้งใหม่ทุก deploy ถ้า lib ออกเวอร์ชันใหม่ที่ไม่เข้ากันจะพังทั้งที่ไม่ได้แตะโค้ด) เวอร์ชันด้านล่างตรวจจริงจาก npm registry วันที่ 15 ก.ย. 2569 ไม่ใช่เดา",
+  "dependencies": {
+    "@supabase/supabase-js": "2.116.0",
+    "bcryptjs": "3.0.3",
+    "nodemailer": "10.0.10",
+    "sanitize-html": "2.18.0",
+    "ws": "8.21.3"
+  },
+  "overrides": {
+    "sanitize-html": {
+      "htmlparser2": "10.0.0"
+    }
+  }
+}

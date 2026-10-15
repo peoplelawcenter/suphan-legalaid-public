@@ -1,0 +1,55 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["hnd1"],
+  "functions": {
+    "api/line-webhook.js": { "maxDuration": 30 },
+    "api/form.js": { "maxDuration": 20 },
+    "api/site.js": { "maxDuration": 20 },
+    "api/site-stats.js": { "maxDuration": 10 },
+    "api/staff.js": { "maxDuration": 30 },
+    "api/cron-notify.js": { "maxDuration": 30 }
+  },
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/api/site?view=home" },
+    { "source": "/news/:id(\\d+)", "destination": "/api/site?view=post&section=news&id=:id" },
+    { "source": "/knowledge/:id(\\d+)", "destination": "/api/site?view=post&section=knowledge&id=:id" },
+    { "source": "/news", "destination": "/api/site?view=news" },
+    { "source": "/knowledge", "destination": "/api/site?view=knowledge" },
+    { "source": "/faq", "destination": "/api/site?view=faq" },
+    { "source": "/documents", "destination": "/api/site?view=documents" },
+    { "source": "/about", "destination": "/api/site?view=about" },
+    { "source": "/services", "destination": "/api/site?view=services" },
+    { "source": "/contact", "destination": "/api/site?view=contact" },
+    { "source": "/page/:slug", "destination": "/api/site?view=page&slug=:slug" },
+    { "source": "/sitemap.xml", "destination": "/api/site?view=sitemap" }
+  ],
+  "crons": [
+    { "path": "/api/cron-notify", "schedule": "0 1 * * *" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
+    {
+      "source": "/assets/fonts/(.*).woff2",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
+  ]
+}

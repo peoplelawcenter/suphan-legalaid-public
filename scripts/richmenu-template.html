@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face { font-family: 'Prompt'; src: local('Prompt'); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 2500px; height: 1686px; font-family: 'Prompt', 'Sarabun', 'Noto Sans Thai', sans-serif; overflow: hidden; }
+  .grid { width: 2500px; height: 1686px; display: grid; grid-template-columns: 834px 833px 833px; grid-template-rows: 843px 843px; background: #0B2E6D; }
+  .cell { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.15); color: #fff; text-align: center; padding: 20px; }
+  .cell:nth-child(odd) { background: #0B2E6D; }
+  .cell:nth-child(even) { background: #123a80; }
+  .icon { font-size: 130px; line-height: 1; margin-bottom: 22px; }
+  .label { font-size: 56px; font-weight: 700; line-height: 1.25; }
+  .accent { position: absolute; bottom: 0; left: 0; right: 0; height: 10px; background: #D9A93B; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="cell"><div class="icon">⚖️</div><div class="label">ปรึกษา<br/>ข้อกฎหมาย</div><div class="accent"></div></div>
+    <div class="cell"><div class="icon">📝</div><div class="label">ฝากเรื่อง<br/>ร้องเรียน</div><div class="accent"></div></div>
+    <div class="cell"><div class="icon">🔍</div><div class="label">ติดตาม<br/>สถานะ</div><div class="accent"></div></div>
+    <div class="cell"><div class="icon">📖</div><div class="label">ความรู้<br/>กฎหมายประชาชน</div><div class="accent"></div></div>
+    <div class="cell"><div class="icon">❓</div><div class="label">คำถามที่<br/>พบบ่อย</div><div class="accent"></div></div>
+    <div class="cell"><div class="icon">☎️</div><div class="label">ติดต่อเรา/<br/>นัดหมาย</div><div class="accent"></div></div>
+  </div>
+</body>
+</html>

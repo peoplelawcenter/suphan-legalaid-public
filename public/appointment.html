@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="color-scheme" content="light dark" />
+<title>แบบคำร้องขอเข้ารับคำปรึกษาทางกฎหมาย — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<!-- 30 ก.ย. 69: ทำใหม่ทั้งหน้าเป็น "แบบคำร้องขอเข้ารับคำปรึกษาทางกฎหมาย" ตามต้นแบบ e-service ของเว็บ อบจ.
+     (suphan.go.th/eservice/cctv — บอสสั่ง) ทับฟอร์มจองคิวแบบง่าย 17 ก.ย. 69 (เดิมเลือกช่วงเช้า/บ่าย)
+     ใช้ได้ 2 ทาง: เปิดจากไลน์ (?k= ออกโดย postback lg:appointment:open) = ผูกไลน์ + ส่งการ์ดยืนยันเข้าแชต ·
+     เปิดตรงจากเว็บ (ไม่มี ?k=) = ไม่ผูกไลน์ ติดตามทางโทรศัพท์ — ตัวเลือกวัน/เวลา/อำเภอ/หมวดดึงจาก
+     /api/form?action=appt-config ที่เดียว (สูตรกลาง api/_appointment.js) เซิร์ฟเวอร์ตรวจซ้ำทุกช่องเสมอ
+     noindex คงไว้ (ลิงก์จากหน้าแรกมีอยู่แล้ว ไม่ต้องให้เครื่องมือค้นหาดึงหน้าฟอร์มไปโชว์ — ลดสแปม) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<meta property="og:title" content="แบบคำร้องขอเข้ารับคำปรึกษาทางกฎหมาย — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<meta property="og:description" content="จองวัน-เวลาขอเข้ารับคำปรึกษาทางกฎหมาย ฟรี ไม่มีค่าใช้จ่าย — สภาทนายความจังหวัดสุพรรณบุรี ร่วมกับ อบจ.สุพรรณบุรี" />
+<meta property="og:image" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta property="og:image:secure_url" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี บริการฟรี ไม่มีค่าใช้จ่าย" />
+<meta property="og:url" content="https://suphan-legalaid.vercel.app/appointment.html" />
+<meta property="og:locale" content="th_TH" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://suphan-legalaid.vercel.app/assets/og-legal-aid-v2.png" />
+<meta name="twitter:image:alt" content="ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี" />
+<link rel="canonical" href="https://suphan-legalaid.vercel.app/appointment.html" />
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/appointment.css">
+<link rel="icon" href="/assets/logo-pao.png">
+</head>
+<body>
+
+<header class="eh">
+  <div class="eh-logos">
+    <img src="/assets/logo-pao.png" alt="ตราองค์การบริหารส่วนจังหวัดสุพรรณบุรี" width="84" height="84" />
+    <img src="/assets/logo-lawyers-council-sm.png" alt="ตราสภาทนายความจังหวัดสุพรรณบุรี" width="84" height="84" />
+  </div>
+  <h1>แบบคำร้องขอเข้ารับคำปรึกษาทางกฎหมาย</h1>
+  <p>ศูนย์ช่วยเหลือประชาชนทางกฎหมาย (สภาทนายความจังหวัดสุพรรณบุรี ร่วมกับ อบจ.สุพรรณบุรี)</p>
+</header>
+
+<main class="sheet">
+  <!-- ═══ กล่องสถานะ ═══ -->
+  <div id="loading" class="state">
+    <div class="ic">⏳</div>
+    <h2>กำลังเตรียมแบบคำร้อง...</h2>
+  </div>
+
+  <div id="stateBox" class="state" hidden>
+    <div class="ic" id="stateIcon">⚠️</div>
+    <h2 id="stateTitle"></h2>
+    <p id="stateMsg"></p>
+    <div class="actions" id="stateActions"></div>
+  </div>
+
+  <!-- ═══ แบบคำร้อง ═══ -->
+  <form id="form" novalidate hidden>
+    <span class="channel" id="channelPill"></span>
+
+    <h2 class="sec">ข้อมูลผู้ยื่นแบบคำร้อง <span class="plain">ข้าพเจ้า</span></h2>
+    <div class="grid">
+      <div class="f c3" id="f-title">
+        <label for="title">คำนำหน้า<span class="req">*</span></label>
+        <select id="title" required>
+          <option value="">— เลือก —</option>
+        </select>
+        <div class="sub" id="titleOtherWrap" hidden>
+          <input type="text" id="titleOther" aria-label="ระบุคำนำหน้า" placeholder="ระบุคำนำหน้า" autocomplete="honorific-prefix">
+        </div>
+      </div>
+      <div class="f c4" id="f-firstName">
+        <label for="firstName">ชื่อ<span class="req">*</span></label>
+        <input type="text" id="firstName" required autocomplete="given-name">
+      </div>
+      <div class="f c5" id="f-lastName">
+        <label for="lastName">นามสกุล<span class="req">*</span></label>
+        <input type="text" id="lastName" required autocomplete="family-name">
+      </div>
+      <div class="f c6" id="f-phone">
+        <label for="phone">หมายเลขโทรศัพท์<span class="req">*</span></label>
+        <input type="tel" id="phone" required inputmode="tel" autocomplete="tel" placeholder="เช่น 0812345678">
+      </div>
+      <div class="f c6" id="f-district">
+        <label for="district">อำเภอที่อยู่<span class="req">*</span></label>
+        <select id="district" required>
+          <option value="">— เลือกอำเภอ —</option>
+        </select>
+      </div>
+    </div>
+
+    <h2 class="sec">มีความประสงค์ขอเข้ารับคำปรึกษาทางกฎหมาย</h2>
+    <div class="grid">
+      <div class="f c6" id="f-preferredDate">
+        <label for="preferredDate">ในวันที่<span class="req">*</span></label>
+        <select id="preferredDate" required>
+          <option value="">— เลือกวันที่ —</option>
+        </select>
+      </div>
+      <div class="f c12" id="f-preferredTime">
+        <span class="lab" id="timeLab">เวลา<span class="req">*</span></span>
+        <div class="times" id="times" role="radiogroup" aria-labelledby="timeLab"></div>
+      </div>
+      <div class="f c6" id="f-category">
+        <label for="category">เรื่องที่ขอรับคำปรึกษา<span class="req">*</span></label>
+        <select id="category" required>
+          <option value="">— เลือกเรื่อง —</option>
+        </select>
+      </div>
+      <div class="f c12" id="f-detail">
+        <label for="detail">รายละเอียดโดยย่อ<span class="req">*</span></label>
+        <textarea id="detail" required placeholder="สรุปสั้นๆ ว่าต้องการปรึกษาเรื่องอะไร (ไม่ต้องใส่เลขบัตรประชาชนหรือที่อยู่)"></textarea>
+        <div class="counter"><span id="detailCount">0</span>/<span id="detailMax">500</span></div>
+      </div>
+    </div>
+
+    <div class="hint-box">📅 เป็นวัน-เวลาที่ท่านสะดวก <b><span class="responder">เจ้าหน้าที่</span>จะโทรยืนยันนัดอีกครั้ง</b> ตามหมายเลขโทรศัพท์ที่ให้ไว้</div>
+
+    <!-- honeypot: คนมองไม่เห็น/กดไม่ถึง บอทที่กรอกทุกช่องจะติดตรงนี้ -->
+    <div class="hp" aria-hidden="true">
+      <label for="lg_hp">เว้นช่องนี้ว่างไว้</label>
+      <input type="text" id="lg_hp" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="pdpa" id="f-pdpa">
+      <input type="checkbox" id="pdpa" required>
+      <label for="pdpa">ข้าพเจ้ายินยอมให้ศูนย์ช่วยเหลือประชาชนทางกฎหมายเก็บและใช้ข้อมูลข้างต้นเพื่อการติดต่อกลับและนัดหมายเข้ารับคำปรึกษาเท่านั้น ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562<span class="req">*</span></label>
+    </div>
+
+    <div class="form-error" id="formError" role="alert" hidden></div>
+
+    <div class="actions two">
+      <button type="submit" class="btn submit" id="submitBtn">ยื่นแบบคำร้อง</button>
+      <button type="button" class="btn cancel" id="cancelBtn">ยกเลิก</button>
+    </div>
+    <p class="fine">เป็นการนัดหมายเบื้องต้น ไม่ผูกกับทนายคนใดคนหนึ่ง · บริการฟรี ไม่มีค่าใช้จ่าย</p>
+    <p class="fine">การรับเรื่องของศูนย์ฯ ไม่ถือเป็นการรับว่าความ รับดำเนินคดีแทน หรือวินิจฉัยชี้ขาดข้อพิพาท และไม่รับรองว่าจะได้รับความช่วยเหลือหรือการจัดหาทนายความในทุกกรณี (ประกาศ ข้อ 6–7) <a href="/about#notice" target="_blank" rel="noopener">อ่านข้อควรทราบฉบับเต็ม</a></p>
+  </form>
+
+  <!-- ═══ ยื่นสำเร็จ ═══ -->
+  <div id="success" class="state" hidden>
+    <div class="ic">✅</div>
+    <h2>ยื่นแบบคำร้องเรียบร้อยแล้ว</h2>
+    <div class="caseno-box">
+      <div class="l">เลขที่เรื่องของท่าน (โปรดจดไว้)</div>
+      <div class="v" id="caseNo"></div>
+    </div>
+    <p><b><span class="responder">เจ้าหน้าที่</span>จะโทรยืนยันนัด</b>ตามหมายเลขโทรศัพท์ที่ท่านให้ไว้</p>
+    <div class="summary" id="summary"></div>
+    <div class="visitbox" id="visitBox" hidden></div>
+    <div class="track" id="trackBox"></div>
+    <div class="actions" id="successActions" style="max-width:420px;margin-left:auto;margin-right:auto"></div>
+  </div>
+</main>
+
+<div class="foot">องค์การบริหารส่วนจังหวัดสุพรรณบุรี · สภาทนายความจังหวัดสุพรรณบุรี</div>
+
+<script>
+const LINE_OA_URL = "https://line.me/R/ti/p/@073kbdgu";
+const WEB_DONE_KEY = "lg-appt-web-done";           // โหมดเว็บ: จำเรื่องที่เพิ่งยื่น กันกดย้อนกลับแล้วยื่นซ้ำ
+const WEB_DONE_TTL_MS = 30 * 60 * 1000;
+const params = new URLSearchParams(location.search);
+const k = (params.get("k") || "").trim();
+const isWeb = !k;
+const $ = (id) => document.getElementById(id);
+let cfg = null;
+
+function show(el) { el.hidden = false; }
+function hide(el) { el.hidden = true; }
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function telHref(phone) { return "tel:" + String(phone || "").replace(/[^\d+]/g, ""); }
+function ssGet(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
+function ssSet(key, v) { try { sessionStorage.setItem(key, v); } catch {} }
+function ssDel(key) { try { sessionStorage.removeItem(key); } catch {} }
+
+/* กล่องสถานะกลาง — ปุ่มเป็น [{label, cls, href|onClick}] */
+function showState(icon, title, msg, buttons = []) {
+  hide($("loading")); hide($("form")); hide($("success"));
+  $("stateIcon").textContent = icon;
+  $("stateTitle").textContent = title;
+  $("stateMsg").textContent = msg || "";
+  const box = $("stateActions");
+  box.innerHTML = "";
+  for (const b of buttons) {
+    const el = document.createElement(b.href ? "a" : "button");
+    el.className = "btn " + (b.cls || "navy");
+    el.textContent = b.label;
+    if (b.href) { el.href = b.href; if (b.external) { el.target = "_blank"; el.rel = "noopener"; } }
+    else { el.type = "button"; el.onclick = b.onClick; }
+    box.appendChild(el);
+  }
+  show($("stateBox"));
+}
+function callButton() {
+  return cfg?.phone ? [{ label: `📞 โทร ${cfg.phone}`, cls: "ghost", href: telHref(cfg.phone) }] : [];
+}
+
+function fillOptions(sel, items) {
+  for (const it of items) {
+    const o = document.createElement("option");
+    o.value = typeof it === "string" ? it : it.value ?? it.iso;
+    o.textContent = typeof it === "string" ? it : it.label;
+    sel.appendChild(o);
+  }
+}
+
+function buildForm() {
+  fillOptions($("title"), cfg.titles);
+  fillOptions($("district"), cfg.districts);
+  fillOptions($("preferredDate"), cfg.dates);
+  fillOptions($("category"), cfg.categories);
+  $("times").innerHTML = cfg.times.map((t) =>
+    `<label><input type="radio" name="preferredTime" value="${esc(t)}"><span>${esc(t)} น.</span></label>`).join("");
+  const L = cfg.limits || {};
+  $("titleOther").maxLength = L.titleOther || 30;
+  $("firstName").maxLength = L.firstName || 60;
+  $("lastName").maxLength = L.lastName || 60;
+  $("phone").maxLength = L.phoneRaw || 20;
+  $("detail").maxLength = L.detail || 500;
+  $("detailMax").textContent = L.detail || 500;
+  document.querySelectorAll(".responder").forEach((el) => { el.textContent = cfg.responderLabel || "เจ้าหน้าที่"; });
+  const pill = $("channelPill");
+  pill.textContent = isWeb ? "🌐 ยื่นผ่านเว็บไซต์" : "💬 ยื่นผ่าน LINE OA";
+  pill.className = "channel" + (isWeb ? "" : " line");
+}
+
+$("title").addEventListener("change", () => {
+  const other = $("title").value === "อื่นๆ";
+  $("titleOtherWrap").hidden = !other;
+  if (other) $("titleOther").focus();
+});
+$("detail").addEventListener("input", () => { $("detailCount").textContent = $("detail").value.length; });
+document.addEventListener("input", (e) => e.target.closest?.(".f, .pdpa")?.classList.remove("invalid"));
+document.addEventListener("change", (e) => e.target.closest?.(".f, .pdpa")?.classList.remove("invalid"));
+
+async function boot() {
+  // กันยื่นซ้ำตอนกดย้อนกลับ/โหลดหน้าเดิม (กันได้เฉพาะเบราว์เซอร์/แท็บเดิม ไม่ใช่ replay-proof — เหมือนฟอร์มอื่น)
+  if (!isWeb && ssGet("lg-submitted-" + k)) {
+    return showState("✅", "ส่งแบบคำร้องนี้ไปแล้ว", "ระบบบันทึกแบบคำร้องนี้เรียบร้อยก่อนหน้านี้แล้ว ไม่ต้องส่งซ้ำ — ตรวจสอบสถานะได้จากแชตไลน์");
+  }
+  if (isWeb) {
+    let done = null;
+    try { done = JSON.parse(ssGet(WEB_DONE_KEY) || "null"); } catch {}
+    if (done && Date.now() - done.at < WEB_DONE_TTL_MS) {
+      return showState("✅", "ท่านเพิ่งยื่นแบบคำร้องไปแล้ว", `เลขที่เรื่อง ${done.caseNo} — ไม่ต้องส่งซ้ำ เจ้าหน้าที่จะโทรยืนยันนัดตามเบอร์ที่ให้ไว้`, [
+        { label: "ยื่นแบบคำร้องใหม่อีกเรื่อง", cls: "navy", onClick: () => { ssDel(WEB_DONE_KEY); location.reload(); } },
+        { label: "กลับหน้าแรก", cls: "ghost", href: "/" },
+      ]);
+    }
+  }
+  try {
+    const cfgReq = fetch("/api/form?action=appt-config", { cache: "no-store" }).then((r) => r.json());
+    const verifyReq = isWeb ? Promise.resolve({ ok: true })
+      : fetch(`/api/form?action=verify&type=appointment&k=${encodeURIComponent(k)}`).then((r) => r.json());
+    const [c, v] = await Promise.all([cfgReq, verifyReq]);
+    if (!c || !c.ok) throw new Error("config");
+    cfg = c;
+    if (!cfg.enabled) {
+      return showState("🔒", "ปิดรับแบบคำร้องชั่วคราว", `ขณะนี้ศูนย์ปิดรับแบบคำร้องขอเข้ารับคำปรึกษาชั่วคราว กรุณาโทร ${cfg.phone} ในวันและเวลาราชการ`, callButton());
+    }
+    if (!v.ok) {
+      // ลิงก์จากไลน์เสีย/หมดอายุ — ไม่ถอยไปโหมดเว็บเงียบๆ ให้ผู้ใช้เลือกเอง (ขอลิงก์ใหม่ในไลน์ หรือยื่นทางเว็บไม่ผูกไลน์)
+      return showState("⚠️", v.expired ? "ลิงก์หมดอายุแล้ว" : "ลิงก์ไม่ถูกต้อง",
+        (v.reason ? v.reason + " — " : "") + "กลับไปที่แชตไลน์แล้วแตะปุ่มจองคิวอีกครั้งเพื่อขอลิงก์ใหม่ หรือยื่นแบบคำร้องผ่านเว็บไซต์ (ไม่ผูกกับไลน์ ติดตามทางโทรศัพท์)",
+        [{ label: "ยื่นแบบคำร้องผ่านเว็บไซต์แทน", cls: "navy", href: "/appointment.html" }, ...callButton()]);
+    }
+    buildForm();
+    hide($("loading"));
+    show($("form"));
+  } catch (e) {
+    showState("📡", "เชื่อมต่อไม่สำเร็จ", "โหลดแบบคำร้องไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่ หรือโทรติดต่อศูนย์ในวันและเวลาราชการ", [
+      { label: "ลองใหม่", cls: "navy", onClick: () => location.reload() },
+    ]);
+  }
+}
+
+function fieldError(field, msg) {
+  const box = $("formError");
+  box.textContent = msg;
+  show(box);
+  const wrap = field === "pdpa" ? $("f-pdpa") : $("f-" + (field === "titleOther" ? "title" : field));
+  if (wrap) {
+    wrap.classList.add("invalid");
+    wrap.scrollIntoView({ behavior: "smooth", block: "center" });
+    const input = field === "preferredTime" ? wrap.querySelector("input") : $(field);
+    if (input && input.focus) setTimeout(() => input.focus({ preventScroll: true }), 250);
+  } else {
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+/* ตรวจเบื้องต้นฝั่งหน้าเว็บให้บอกผู้ใช้ได้ทันที (เซิร์ฟเวอร์ตรวจซ้ำครบทุกข้อเสมอ ไม่เชื่อชั้นนี้) */
+function collect() {
+  const val = (id) => $(id).value.trim();
+  const time = document.querySelector('input[name="preferredTime"]:checked');
+  const data = {
+    title: val("title"), titleOther: val("titleOther"), firstName: val("firstName"), lastName: val("lastName"),
+    phone: val("phone"), district: val("district"), preferredDate: val("preferredDate"),
+    preferredTime: time ? time.value : "", category: val("category"), detail: $("detail").value.trim(),
+    pdpaConsent: $("pdpa").checked,
+  };
+  const checks = [
+    ["title", !data.title, "กรุณาเลือกคำนำหน้า"],
+    ["titleOther", data.title === "อื่นๆ" && !data.titleOther, "กรุณาระบุคำนำหน้า"],
+    ["firstName", !data.firstName, "กรุณากรอกชื่อ"],
+    ["lastName", !data.lastName, "กรุณากรอกนามสกุล"],
+    ["phone", !/^(0\d{8,9}|\+66\d{8,9})$/.test(data.phone.replace(/[\s\-().]/g, "")), "กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (เช่น 0812345678)"],
+    ["district", !data.district, "กรุณาเลือกอำเภอที่อยู่"],
+    ["preferredDate", !data.preferredDate, "กรุณาเลือกวันที่ขอเข้ารับคำปรึกษา"],
+    ["preferredTime", !data.preferredTime, "กรุณาเลือกเวลาที่ขอเข้ารับคำปรึกษา"],
+    ["category", !data.category, "กรุณาเลือกเรื่องที่ขอรับคำปรึกษา"],
+    ["detail", !data.detail, "กรุณากรอกรายละเอียดเรื่องที่ขอรับคำปรึกษาโดยย่อ"],
+    ["pdpa", !data.pdpaConsent, "กรุณายอมรับข้อตกลงการใช้ข้อมูลส่วนบุคคล"],
+  ];
+  for (const [field, bad, msg] of checks) if (bad) return { error: { field, msg } };
+  return { data };
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  hide($("formError"));
+  const { data, error } = collect();
+  if (error) return fieldError(error.field, error.msg);
+
+  const btn = $("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "กำลังยื่นแบบคำร้อง...";
+  try {
+    const r = await fetch("/api/form", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, formType: "appointment", k: isWeb ? undefined : k, stamp: isWeb ? cfg.stamp : undefined, honeypot: $("lg_hp").value }),
+    });
+    let d = null;
+    try { d = await r.json(); } catch {}
+    if (!d) throw { msg: `ระบบขัดข้องชั่วคราว (รหัส ${r.status}) กรุณาลองใหม่ หรือโทร ${cfg.phone}` };
+    if (!d.ok) throw { field: d.field, msg: d.error || d.reason || "ยื่นแบบคำร้องไม่สำเร็จ กรุณาลองใหม่" };
+    if (!d.caseNo) throw { msg: "ยื่นแบบคำร้องไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
+    showSuccess(d, data);
+  } catch (err) {
+    const msg = err?.msg || "เชื่อมต่อไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่";
+    if (err?.field) fieldError(err.field, msg); else { $("formError").textContent = msg; show($("formError")); $("formError").scrollIntoView({ behavior: "smooth", block: "center" }); }
+    btn.disabled = false;
+    btn.textContent = "ยื่นแบบคำร้อง";
+  }
+});
+
+/* 30 ก.ย. 69: สถานที่ + เวลาทนายอาสา + เอกสารที่ต้องนำมา (ข้อมูลจริงจากบอส ส่งมากับ appt-config — แหล่งเดียวกับการ์ดไลน์)
+   คนที่ยื่นผ่านเว็บไม่ได้การ์ดในแชต จึงต้องเห็นบนหน้านี้ · ไม่มีข้อมูล = ไม่แสดงกล่อง · ทุกค่าผ่าน esc() */
+function renderVisitBox(v) {
+  const box = $("visitBox");
+  if (!v || (!v.room && !v.lawyerSchedule && !(v.documents || []).length)) { box.hidden = true; return; }
+  const place = v.room ? `<h3>📍 สถานที่เข้ารับคำปรึกษา</h3><p><b>${esc(v.room)}</b><br>${esc(v.place || "")}</p>${v.address ? `<p class="muted">${esc(v.address)}</p>` : ""}` : "";
+  const map = v.mapDirUrl && /^https:\/\/www\.google\.com\/maps\//.test(v.mapDirUrl)
+    ? `<p><a class="btn ghost" href="${esc(v.mapDirUrl)}" target="_blank" rel="noopener">🗺️ ขอเส้นทาง (Google Maps)</a></p>` : "";
+  const lawyer = v.lawyerSchedule ? `<h3>🕘 ทนายอาสาประจำศูนย์</h3><p>${esc(v.lawyerSchedule)}${v.lawyerOff ? `<br><span class="muted">${esc(v.lawyerOff)}</span>` : ""}</p>` : "";
+  const docs = (v.documents || []).length
+    ? `<h3>📄 เอกสารที่ต้องนำมาในวันนัด</h3><ol>${v.documents.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${v.documentsNote ? `<p class="note">${esc(v.documentsNote)}</p>` : ""}` : "";
+  box.innerHTML = place + map + lawyer + docs;
+  box.hidden = false;
+}
+
+function showSuccess(d, data) {
+  if (isWeb) ssSet(WEB_DONE_KEY, JSON.stringify({ caseNo: d.caseNo, at: Date.now() }));
+  else ssSet("lg-submitted-" + k, "1");
+  hide($("form"));
+  $("caseNo").textContent = d.caseNo;
+  const dateLabel = $("preferredDate").selectedOptions[0]?.textContent || data.preferredDate;
+  const catLabel = $("category").selectedOptions[0]?.textContent || data.category;
+  const name = (data.title === "อื่นๆ" ? data.titleOther + " " : data.title) + data.firstName + " " + data.lastName;
+  $("summary").innerHTML = [
+    ["ผู้ยื่น", name], ["โทรศัพท์", data.phone], ["วันที่", dateLabel], ["เวลา", data.preferredTime + " น."], ["เรื่อง", catLabel],
+  ].map(([a, b]) => `<div><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join("");
+
+  renderVisitBox(cfg && cfg.visit);
+
+  const phone = d.phone || cfg.phone;
+  const offHours = d.officeHours ? "" : `<p>ขณะนี้อยู่นอกเวลาทำการ ${esc(cfg.responderLabel || "เจ้าหน้าที่")}จะติดต่อกลับในวันทำการถัดไป</p>`;
+  const acts = $("successActions");
+  acts.innerHTML = "";
+  if (d.channel === "web") {
+    $("trackBox").innerHTML = `<h3>วิธีติดตามเรื่อง</h3>
+      <p>โทร <b>${esc(phone)}</b> ในวันและเวลาราชการ แล้วแจ้งเลขที่เรื่อง <b>${esc(d.caseNo)}</b></p>
+      <p>เรื่องที่ยื่นผ่านเว็บไซต์ไม่ได้ผูกกับบัญชีไลน์ จึงติดตามทางโทรศัพท์เป็นหลัก — เพิ่มเพื่อน LINE OA ไว้ใช้บริการครั้งต่อไปได้</p>${offHours}`;
+    acts.innerHTML = `<a class="btn navy" href="${telHref(phone)}">📞 โทร ${esc(phone)}</a>
+      <a class="btn line" href="${LINE_OA_URL}" target="_blank" rel="noopener">💬 เพิ่มเพื่อน LINE OA @073kbdgu</a>
+      <a class="btn ghost" href="/">กลับหน้าแรก</a>`;
+  } else {
+    $("trackBox").innerHTML = `<h3>วิธีติดตามเรื่อง</h3>
+      <p>${d.confirmSent ? "ระบบส่งการ์ดยืนยันเข้าแชตไลน์ของท่านแล้ว" : "หากไม่เห็นการ์ดยืนยันในแชตไลน์"} — พิมพ์ "ติดตามสถานะ" หรือเลขที่เรื่องในแชตไลน์ได้ทุกเมื่อ</p>
+      <p>หรือโทร <b>${esc(phone)}</b> ในวันและเวลาราชการ</p>${offHours}`;
+    acts.innerHTML = `<a class="btn line" href="${LINE_OA_URL}">💬 กลับไปที่แชตไลน์</a>`;
+  }
+  show($("success"));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ปุ่ม "ยกเลิก" = ล้างข้อมูลที่กรอก/ย้อนกลับเท่านั้น ยังไม่มีอะไรถูกส่งเข้าระบบ จึงไม่ลบข้อมูลใดในระบบ */
+$("cancelBtn").addEventListener("click", () => {
+  if (!confirm("ต้องการยกเลิกและล้างข้อมูลที่กรอกไว้หรือไม่?\n(ยังไม่มีการส่งข้อมูลใดเข้าระบบ)")) return;
+  $("form").reset();
+  $("titleOtherWrap").hidden = true;
+  $("detailCount").textContent = "0";
+  hide($("formError"));
+  document.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
+  let sameOriginRef = false;
+  try { sameOriginRef = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch {}
+  if (isWeb && sameOriginRef && history.length > 1) return history.back();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// กดย้อนกลับมาจาก bfcache (หน้าไม่โหลดใหม่) → โหลดใหม่ให้ด่านกันยื่นซ้ำทำงาน + ได้ตราเวลาใหม่
+window.addEventListener("pageshow", (e) => { if (e.persisted) location.reload(); });
+
+boot();
+</script>
+</body>
+</html>

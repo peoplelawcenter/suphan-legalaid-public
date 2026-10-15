@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>หลังบ้านเจ้าหน้าที่ — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/staff.css">
+<link rel="icon" href="/assets/logo-pao.png">
+<!-- ใช้เฉพาะอัปโหลด "เอกสาร/รูปผลการดำเนินการ" ตรงไป Supabase Storage ด้วย signed URL เหมือน complaint.html
+     (คีย์ที่ฝังในหน้านี้คือ anon/publishable key ตั้งใจให้เปิดเผยได้ ไม่ใช่ service key — ดู api/_evidence.js) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
+  integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="invalid" class="state-box" hidden>
+  <div class="icon" id="invalidIcon">⚠️</div>
+  <h2 id="invalidTitle">ไม่มีสิทธิ์เข้าใช้งาน</h2>
+  <p id="invalidMsg">ติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์ใหม่</p>
+  <p><a href="/staff-login.html">← กลับไปหน้าเข้าสู่ระบบ</a></p>
+</div>
+
+<div id="app" hidden>
+  <div class="navbar">
+    <img src="/assets/logo-pao.png" class="org-logo" alt="" />
+    <div class="org-name">
+      <div class="lab">หน่วยงานปัจจุบัน</div>
+      <div class="val">ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</div>
+    </div>
+    <div class="navtabs" id="tabs">
+      <button class="navtab active" data-tab="cases">📄 รายการเรื่อง</button>
+      <button class="navtab" data-tab="dashboard">📊 แดชบอร์ด</button>
+      <!-- 7 ต.ค. 69: รวม "เจ้าหน้าที่" + "โปรไฟล์/ตั้งค่า" เป็นแท็บ "ตั้งค่า" แท็บเดียว — ข้างในเป็นเมนูซ้ายกดทีละหัวข้อ (ล้อ Traffy Fondue) -->
+      <button class="navtab" data-tab="settings" id="tabSettings">⚙️ ตั้งค่า<span class="tab-dot" id="settingsDot" hidden title="มีคำขอสมัครเจ้าหน้าที่รออนุมัติ"></span></button>
+      <!-- หน้าแยกส่งโปสเตอร์ข่าว ปชส. ถึงเพื่อนทุกคนของ LINE OA (เพิ่ม 24 ก.ย. 69 — เฉพาะแอดมิน) เป็นลิงก์
+           ไปอีกหน้า ไม่ใช่แท็บในหน้านี้ → ไม่มี data-tab (ตัวจับคลิกแท็บด้านล่างเลือกเฉพาะ .navtab[data-tab]) -->
+      <a class="navtab navlink" href="/broadcast.html" id="tabBroadcast" hidden>📢 ส่งประกาศ</a>
+      <a class="navtab navlink" href="/cms.html" id="tabCms" hidden>🌐 จัดการเว็บไซต์</a>
+    </div>
+    <button class="navbtn" id="exportBtn" aria-label="ดาวน์โหลด CSV" title="ดาวน์โหลด CSV">⬇️<span class="navbtn-label"> ดาวน์โหลด CSV</span></button>
+    <!-- 22 ก.ย. 69 — บอสสั่งทำตามภาพต้นแบบ Traffy Fondue: avatar กดได้ เปิดเมนูดูโปรไฟล์+ออกจากระบบ
+         แทนปุ่ม "ออกจากระบบ" แยกโดดเดิม (ดู CLAUDE.md หัวข้อ navbar)
+         7 ต.ค. 69 — ปรับให้เหมือนต้นแบบยิ่งขึ้น: avatar แสดงรูปจริงได้ · ใต้ชื่อมี "User: รหัส" · ปุ่ม "แก้ไขโปรไฟล์" พาไปตั้งค่า > โปรไฟล์ของฉัน
+         (ตัวอักษรย่อ/รูปเติมโดย public/staff-settings.js → paintIdentity()) -->
+    <div class="profile-menu" id="profileMenu">
+      <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false" aria-label="เมนูผู้ใช้งาน">
+        <div class="avatar" id="avatarChip" aria-hidden="true">?</div>
+        <span class="caret">▾</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" hidden>
+        <div class="pd-head">
+          <div class="avatar lg" id="avatarChipLg" aria-hidden="true">?</div>
+          <div class="pd-who">
+            <div class="pd-name" id="pdName">—</div>
+            <div class="pd-meta" id="pdMeta">—</div>
+            <div class="pd-email" id="pdEmail"></div>
+          </div>
+        </div>
+        <button class="pd-item" id="pdProfileBtn">✏️ แก้ไขโปรไฟล์</button>
+        <button class="pd-item danger" id="pdLogoutBtn">🚪 ออกจากระบบ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div id="panel-cases" class="panel">
+      <div class="stats" id="stats"></div>
+
+      <!-- 2 ต.ค. 69: ชิปกรองประเภทเรื่อง (บอสแจ้ง "เจ้าหน้าที่ไม่เห็นการจองคิวทนายอาสา หรือเรื่องร้องเรียน") — renderTypeChips() -->
+      <div class="quickrow typerow" id="typeChips" role="group" aria-label="กรองตามประเภทเรื่อง"></div>
+
+      <div class="quickrow">
+        <button class="chip" data-quick="stale">⏱️ ค้างนาน &gt; 3 วัน</button>
+        <button class="chip" data-quick="unassigned">⚠️ ยังไม่มอบหมาย</button>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="🔎 ค้นหาเลขที่เรื่อง / ชื่อ / เบอร์โทร">
+        <div class="viewswitch">
+          <button id="viewGridBtn" class="active" title="มุมมองการ์ด">▦</button>
+          <button id="viewListBtn" title="มุมมองรายการ">☰</button>
+        </div>
+      </div>
+
+      <p class="resultcount" id="resultCount"></p>
+      <div class="case-grid" id="list"></div>
+      <p id="empty" class="state-box" hidden><span class="icon">📭</span><br>ไม่พบเรื่องที่ตรงกับเงื่อนไข</p>
+    </div>
+
+    <div id="panel-dashboard" class="panel" hidden>
+      <div class="dash-section">
+        <div class="dash-head">
+          <h3>แนวโน้มจำนวนเรื่องใหม่</h3>
+          <div class="seg" id="trendSeg">
+            <button data-mode="daily" class="active">รายวัน</button>
+            <button data-mode="weekly">รายสัปดาห์</button>
+          </div>
+        </div>
+        <div class="bars" id="trendBars"></div>
+        <p id="trendEmpty" class="empty-hint" hidden>ยังไม่มีข้อมูลเรื่องในช่วงนี้</p>
+      </div>
+
+      <div class="dash-section">
+        <h3>สัดส่วนตามหมวดกฎหมาย</h3>
+        <div class="hbars" id="categoryBars"></div>
+        <p id="categoryEmpty" class="empty-hint" hidden>ยังไม่มีข้อมูล</p>
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-card"><div class="num" id="avgCloseNum">-</div><div class="lab">วันเฉลี่ยกว่าจะปิดเรื่อง</div></div>
+        <div class="dash-card"><div class="num" id="resolutionRateNum">-</div><div class="lab">อัตราปิดเรื่องสำเร็จ</div></div>
+        <div class="dash-card"><div class="num" id="overdueNum">-</div><div class="lab">เรื่องค้างเกิน 3 วัน</div></div>
+        <div class="dash-card"><div class="num" id="quotaNum">-</div><div class="lab">โควตา LINE push ใช้ไปเดือนนี้ (300/เดือน)</div></div>
+        <div class="dash-card"><div class="num" id="satisfactionNum">-</div><div class="lab">คะแนนความพึงพอใจเฉลี่ย</div></div>
+        <div class="dash-card"><div class="num" id="totalNum">-</div><div class="lab">จำนวนเรื่องทั้งหมด</div></div>
+      </div>
+
+      <!-- แยกตามหมวดกฎหมาย (แนวคิดจาก Traffy Fondue เพิ่ม 17 ก.ย. 69) -->
+      <div class="dash-section">
+        <h3>⭐ ความพึงพอใจแยกตามหมวดกฎหมาย</h3>
+        <div class="hbars" id="satCategoryBars"></div>
+        <p id="satCategoryEmpty" class="empty-hint" hidden>ยังไม่มีคะแนนความพึงพอใจ</p>
+      </div>
+      <div class="dash-section">
+        <h3>⏱️ วันเฉลี่ยกว่าจะปิดเรื่อง แยกตามหมวดกฎหมาย</h3>
+        <div class="hbars" id="closeDaysCategoryBars"></div>
+        <p id="closeDaysCategoryEmpty" class="empty-hint" hidden>ยังไม่มีเรื่องที่ปิดแล้ว</p>
+      </div>
+    </div>
+
+    <!-- ═══ ตั้งค่า (7 ต.ค. 69) — เมนูซ้ายกดทีละหัวข้อ ล้อหน้า "การตั้งค่าระบบ" ของ Traffy Fondue ═══
+         แทนแท็บ "เจ้าหน้าที่" + "โปรไฟล์/ตั้งค่า" เดิมที่ยกทุกหัวข้อซ้อนยาวในหน้าเดียว (บอสว่างง) · แสดงทีละ 1 หัวข้อ (.spane)
+         ตรรกะทั้งหมดอยู่ public/staff-settings.js · หัวข้อสำหรับผู้ดูแล (data-admin) เจ้าหน้าที่ทั่วไปยังเห็นในเมนูแต่เปิดแล้วเป็นการ์ด 🔒
+         เหมือนต้นแบบ — สิทธิ์จริงตรวจที่ api/staff.js ทุก action ไม่ได้พึ่งการซ่อนหน้าเว็บ -->
+    <div id="panel-settings" class="panel" hidden>
+      <div class="settings" id="settings">
+        <nav class="settings-nav" aria-label="หัวข้อการตั้งค่า">
+          <div class="sn-head">
+            <span class="sn-title">การตั้งค่าระบบ</span>
+            <button type="button" class="sn-collapse" id="snCollapse" aria-expanded="true" aria-label="ย่อเมนูตั้งค่า" title="ย่อ/ขยายเมนู">«</button>
+          </div>
+          <div class="sn-list" id="snList">
+            <button type="button" class="sn-item active" data-topic="me" aria-current="true"><span class="sn-ico" aria-hidden="true">👤</span><span class="sn-label">โปรไฟล์ของฉัน</span></button>
+            <button type="button" class="sn-item" data-topic="links"><span class="sn-ico" aria-hidden="true">🔗</span><span class="sn-label">บัญชีที่เชื่อม</span></button>
+            <button type="button" class="sn-item" data-topic="staff" data-admin><span class="sn-ico" aria-hidden="true">👥</span><span class="sn-label">จัดการเจ้าหน้าที่</span><span class="sn-badge" id="staffReqBadge" hidden></span><span class="sn-lock" hidden aria-label="เฉพาะผู้ดูแลระบบ">🔒</span></button>
+            <button type="button" class="sn-item" data-topic="center" data-admin><span class="sn-ico" aria-hidden="true">🏛️</span><span class="sn-label">ตั้งค่าศูนย์</span><span class="sn-lock" hidden aria-label="เฉพาะผู้ดูแลระบบ">🔒</span></button>
+            <button type="button" class="sn-item" data-topic="qr"><span class="sn-ico" aria-hidden="true">🔳</span><span class="sn-label">QR Code</span></button>
+          </div>
+        </nav>
+
+        <div class="settings-main">
+
+          <!-- ① โปรไฟล์ของฉัน — รูป + ข้อมูลผู้ใช้งาน (ดีไซน์ปรับใช้จากหน้าโปรไฟล์ Traffy Fondue: ลำดับขั้นยืนยัน + ฟิลด์ที่ยืนยันแล้วล็อกแก้ไม่ได้
+               ใช้อีเมลที่ยืนยันแล้วแทน ThaiID · ไม่มี OTP เบอร์โทร/SMS จริง — ดู CLAUDE.md หัวข้อ "ข้อมูลผู้ใช้งาน") -->
+          <section class="spane" id="spane-me" data-topic="me" aria-labelledby="h-me">
+            <header class="spane-head"><h2 id="h-me">โปรไฟล์ของฉัน</h2><p>ข้อมูลผู้ใช้งาน รูปโปรไฟล์ และขั้นตอนยืนยันตัวตนของบัญชีนี้</p></header>
+            <div class="pane-body">
+              <div class="me-hero">
+                <button type="button" class="avatar-edit" id="avatarEditBtn" aria-label="เปลี่ยนรูปโปรไฟล์">
+                  <span class="avatar xl" id="avatarChipXl" aria-hidden="true">?</span>
+                  <span class="avatar-cam" aria-hidden="true">📷</span>
+                </button>
+                <div class="me-hero-text">
+                  <div class="me-name" id="meName">—</div>
+                  <div class="me-sub" id="meSub">—</div>
+                  <div class="me-actions">
+                    <button type="button" class="btn small" id="avatarChangeBtn">📷 เปลี่ยนรูปโปรไฟล์</button>
+                    <button type="button" class="btn small danger" id="avatarRemoveBtn" hidden>ลบรูป</button>
+                  </div>
+                  <p class="hint">รองรับไฟล์ JPG, PNG, WebP · ระบบย่อรูปให้อัตโนมัติ · รูปแสดงเฉพาะในหลังบ้านนี้</p>
+                </div>
+                <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp" hidden>
+              </div>
+
+              <div class="verify-steps" id="verifySteps"></div>
+              <div id="verifyBanner"></div>
+              <div class="field-group">
+                <label>ชื่อ-นามสกุล</label>
+                <div class="field-locked" id="fieldName">—</div>
+              </div>
+              <div class="field-group">
+                <label>อีเมล</label>
+                <div class="field-locked" id="fieldEmail">—</div>
+              </div>
+              <div class="field-group">
+                <label for="fieldPhone">เบอร์โทรศัพท์ <span class="req">*</span></label>
+                <input type="tel" id="fieldPhone" placeholder="เช่น 081-234-5678" maxlength="20" autocomplete="tel">
+              </div>
+              <div class="field-group">
+                <label for="fieldPosition">ตำแหน่งในหน่วยงาน <span class="req">*</span></label>
+                <input type="text" id="fieldPosition" placeholder="เช่น นิติกร, ทนายความอาสา, เจ้าหน้าที่ธุรการ" maxlength="100">
+              </div>
+              <button type="button" class="btn primary" id="saveProfileBtn">บันทึกข้อมูล</button>
+            </div>
+          </section>
+
+          <!-- ② บัญชีที่เชื่อม -->
+          <section class="spane" id="spane-links" data-topic="links" aria-labelledby="h-links" hidden>
+            <header class="spane-head"><h2 id="h-links">บัญชีที่เชื่อม</h2><p>เชื่อมไว้เพื่อเข้าสู่ระบบทางลัดครั้งต่อไป และ (เฉพาะ LINE) รับแจ้งเตือนเรื่องใหม่/เร่งด่วนเสริมจากอีเมล · ไม่เชื่อมก็ใช้งานระบบด้วยอีเมล/รหัสผ่านได้ตามปกติ</p></header>
+            <div class="pane-body">
+              <div class="link-list">
+                <div class="link-row" id="lineStatus"></div>
+                <div class="link-row" id="googleStatus"></div>
+                <div class="link-row" id="facebookStatus"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ③ จัดการเจ้าหน้าที่ (แอดมินเท่านั้น) — 3 มุมมองสลับด้วยชิปด้านบน แสดงทีละมุมมอง ไม่ซ้อนกันยาว -->
+          <section class="spane" id="spane-staff" data-topic="staff" data-admin aria-labelledby="h-staff" hidden>
+            <header class="spane-head"><h2 id="h-staff">จัดการเจ้าหน้าที่</h2><p>อนุมัติคำขอสมัคร กำหนดสิทธิ์และการรับแจ้งเตือน และดูภาระงานของเจ้าหน้าที่แต่ละท่าน</p></header>
+            <div class="locked-card" hidden>
+              <div class="lock-ico" aria-hidden="true">🔒</div>
+              <div class="lock-title">เป็นคุณลักษณะสำหรับผู้ดูแลระบบ</div>
+              <div class="lock-desc">เฉพาะผู้ดูแลระบบเท่านั้นที่จัดการเจ้าหน้าที่ได้</div>
+            </div>
+            <div class="pane-body">
+              <div class="quickrow subtabs" id="staffSubtabs" role="group" aria-label="มุมมองจัดการเจ้าหน้าที่">
+                <button type="button" class="chip active" data-sub="requests">📨 คำขอสมัคร <span class="chip-count" id="reqCount" hidden>0</span></button>
+                <button type="button" class="chip" data-sub="list">👥 เจ้าหน้าที่ทั้งหมด</button>
+                <button type="button" class="chip" data-sub="workload">📊 ภาระงาน</button>
+              </div>
+              <div class="subpane" data-sub="requests">
+                <div id="staffRequests"></div>
+                <p id="requestsEmpty" class="empty-hint" hidden>ไม่มีคำขอสมัครค้างอยู่</p>
+              </div>
+              <div class="subpane" data-sub="list" hidden>
+                <div id="staffList"></div>
+              </div>
+              <!-- อันดับภาระงานเจ้าหน้าที่ (แนวคิดจาก Traffy Fondue "การปฏิบัติงานของเจ้าหน้าที่" เพิ่ม 17 ก.ย. 69) -->
+              <div class="subpane" data-sub="workload" hidden>
+                <table class="workload-table" id="workloadTable"></table>
+                <p id="workloadEmpty" class="empty-hint" hidden>ยังไม่มีเรื่องที่มอบหมาย</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ④ ตั้งค่าศูนย์ (แอดมินเท่านั้น) -->
+          <section class="spane" id="spane-center" data-topic="center" data-admin aria-labelledby="h-center" hidden>
+            <header class="spane-head"><h2 id="h-center">ตั้งค่าศูนย์</h2><p>เวลาทำการ เบอร์โทรติดต่อ คำเรียกผู้ตอบ และสวิตช์ปุ่มจองคิว ที่ระบบใช้ในการ์ด LINE ของศูนย์</p></header>
+            <div class="locked-card" hidden>
+              <div class="lock-ico" aria-hidden="true">🔒</div>
+              <div class="lock-title">เป็นคุณลักษณะสำหรับผู้ดูแลระบบ</div>
+              <div class="lock-desc">เฉพาะผู้ดูแลระบบเท่านั้นที่ตั้งค่าศูนย์ได้</div>
+            </div>
+            <div class="pane-body">
+              <div id="settingsForm"></div>
+            </div>
+          </section>
+
+          <!-- ⑤ QR Code (7 ต.ค. 69 — ปรับจากหน้า "จัดการ QR Code ของหน่วยงาน" ของ Traffy Fondue) QR สำเร็จรูป 3 ใบ สร้างในเบราว์เซอร์
+               จากลิงก์กลางของระบบ (action=qr-config) — ไม่มีตาราง/migration · ไลบรารี public/assets/vendor/qrcode-generator-*.js โฮสต์เอง -->
+          <section class="spane" id="spane-qr" data-topic="qr" aria-labelledby="h-qr" hidden>
+            <header class="spane-head"><h2 id="h-qr">จัดการ QR Code</h2><p>QR สำเร็จรูปของศูนย์ สำหรับพิมพ์ติดป้ายประชาสัมพันธ์หรือแจกจ่ายต่อ ดาวน์โหลดได้ทั้งแบบมีกรอบและไม่มีกรอบ</p></header>
+            <div class="pane-body">
+              <div class="qr-toolbar">
+                <input type="search" id="qrSearch" placeholder="🔎 ค้นหาชื่อหรือคำอธิบาย QR..." aria-label="ค้นหา QR">
+                <div class="seg" id="qrFrameSeg" role="group" aria-label="รูปแบบ QR">
+                  <button type="button" class="active" data-frame="1" aria-pressed="true">มีกรอบ</button>
+                  <button type="button" data-frame="0" aria-pressed="false">ไม่มีกรอบ</button>
+                </div>
+              </div>
+              <div class="qr-grid" id="qrGrid"></div>
+              <p id="qrEmpty" class="empty-hint" hidden>ไม่พบ QR ที่ตรงกับคำค้น</p>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<!-- 7 ต.ค. 69 — หน้าต่างปรับรูปโปรไฟล์ (ลากเลื่อน + ซูม แล้วย่อเป็น JPEG 256×256 ในเบราว์เซอร์ก่อนส่ง) · ตรรกะอยู่ public/staff-settings.js -->
+<div class="modal-backdrop" id="avatarModal" hidden>
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="avTitle">
+    <h3 id="avTitle">ปรับรูปโปรไฟล์</h3>
+    <p class="hint">ลากรูปเพื่อเลื่อนตำแหน่ง · ใช้แถบหรือล้อเมาส์เพื่อซูม · ส่วนในวงกลมคือรูปที่จะแสดง</p>
+    <div class="av-stage" id="avStage" tabindex="0" aria-label="พื้นที่ปรับรูป (ใช้ลูกศรเพื่อเลื่อนรูป)">
+      <canvas id="avCanvas" width="320" height="320"></canvas>
+      <div class="av-ring" aria-hidden="true"></div>
+    </div>
+    <div class="av-zoom">
+      <span aria-hidden="true">🔍</span>
+      <input type="range" id="avZoom" min="1" max="3" step="0.01" value="1" aria-label="ซูมรูป">
+    </div>
+    <div class="av-actions">
+      <button type="button" class="btn" id="avCancel">ยกเลิก</button>
+      <button type="button" class="btn primary" id="avSave">บันทึกรูป</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7 ต.ค. 69: ไลบรารีสร้าง QR (MIT โฮสต์เอง) + ตรรกะหน้า "ตั้งค่า" ทั้งหมดแยกไฟล์ (เมนูซ้าย/โปรไฟล์+รูป/บัญชีที่เชื่อม/จัดการเจ้าหน้าที่/ตั้งค่าศูนย์/QR)
+     staff-settings.js ห่อด้วย IIFE เปิดตัวแปรออกมาแค่ window.StaffSettings — ใช้ api()/esc()/myRole/myStaffId/CATEGORY_TH จากสคริปต์ด้านล่างตอนเรียกใช้จริง -->
+<script src="/assets/vendor/qrcode-generator-2.0.4.js"></script>
+<script src="/staff-settings.js"></script>
+<script>
+let currentStatus = "";
+let currentQuick = "";
+let currentType = ""; // 2 ต.ค. 69: "" | consult | appointment | complaint | chat (เรื่องที่แจ้งทางแชตไลน์ ทุกประเภท)
+let viewMode = "grid";
+let myRole = null;
+let myStaffId = null;
+let allCases = [];
+let activeStaffList = [];
+let dashboardLoaded = false;
+let sbClient = null; // ใช้เฉพาะอัปโหลด "เอกสารผลการดำเนินการ" ตรงไป Supabase Storage (ดู openCase())
+async function initSupabase() {
+  const r = await fetch("/api/form?action=config");
+  const cfg = await r.json();
+  sbClient = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+}
+
+const STATUS_TH = { new: "รอมอบหมาย", assigned: "มอบหมายแล้ว", in_progress: "กำลังดำเนินการ", need_info: "รอข้อมูลเพิ่ม", closed: "ปิดเรื่องแล้ว", withdrawn: "ยกเลิกโดยผู้แจ้ง" };
+// withdrawn: ประชาชนยกเลิกเองจากไลน์เท่านั้น (ดู SPEC.md ข้อ 2.5b) — ไม่มีปุ่มให้เจ้าหน้าที่ตั้งค่านี้จากหลังบ้าน
+const NEXT_STATUS = { new: ["assigned", "closed"], assigned: ["in_progress", "need_info", "closed"], in_progress: ["need_info", "closed"], need_info: ["in_progress", "closed"], closed: [], withdrawn: [] };
+const CASE_TYPE_TH = { consult: "ปรึกษาข้อกฎหมาย", complaint: "ร้องเรียน", appointment: "จองคิวทนายอาสา" };
+const TYPE_ICON = { consult: "⚖️", complaint: "📝", appointment: "📅" };
+const CATEGORY_TH = { scam: "ถูกโกง/มิจฉาชีพ", debt: "หนี้สิน", inheritance: "มรดก", labor: "จ้างงาน", divorce: "หย่า/ครอบครัว", land: "ที่ดิน/บ้าน", criminal: "อุบัติเหตุ/คดีอาญา", other: "อื่นๆ" };
+const DAY_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
+
+// ข้อความสำเร็จรูปกดแทรก (แนวคิดจาก Traffy Fondue "AI ร่างคำตอบ" — ที่นี่เป็นข้อความคงที่เขียนไว้ล่วงหน้า
+// ไม่ใช่ AI เพราะเนื้อหากฎหมายห้ามให้บอทตอบเอง (ดู SPEC.md ข้อ 6) แค่ประหยัดเวลาพิมพ์ เจ้าหน้าที่แก้ไขได้ก่อนส่ง)
+const CANNED_NOTES = ["รอเอกสารเพิ่มจากประชาชน", "นัดหมายแล้วรอโทรกลับยืนยัน", "ส่งเรื่องให้นิติกร/ทนายอาสาพิจารณาแล้ว"];
+const CANNED_MESSAGES = [
+  "เจ้าหน้าที่ได้รับเรื่องของท่านแล้ว อยู่ระหว่างดำเนินการ จะติดต่อกลับโดยเร็วที่สุด",
+  "ขอเอกสารเพิ่มเติม กรุณาติดต่อกลับเจ้าหน้าที่ตามเบอร์ที่ท่านให้ไว้",
+  "เจ้าหน้าที่ได้นัดหมายเพื่อติดต่อกลับท่านแล้ว",
+  "เรื่องของท่านดำเนินการเสร็จสิ้นแล้ว ขอบคุณที่ติดต่อศูนย์ช่วยเหลือประชาชนทางกฎหมาย",
+];
+const CATEGORY_KEYS = Object.keys(CATEGORY_TH);
+
+async function api(action, opts = {}) {
+  const method = opts.method || "GET";
+  const url = new URL(location.origin + "/api/staff");
+  url.searchParams.set("action", action);
+  for (const [key, val] of Object.entries(opts.query || {})) if (val) url.searchParams.set(key, val);
+  const r = await fetch(url, {
+    method,
+    headers: method === "POST" ? { "Content-Type": "application/json" } : undefined,
+    body: method === "POST" ? JSON.stringify(opts.body || {}) : undefined,
+  });
+  return r.json();
+}
+
+// 7 ต.ค. 69: escape เครื่องหมายคำพูดด้วย (เดิมแค่ & < >) — ค่าที่ใส่ใน attribute เช่น value="${esc(email)}" ต้องไม่หลุดออกจากเครื่องหมายคำพูดได้
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ═══ boot + แท็บ ═══ เซสชันเป็นคุกกี้ httpOnly (ตั้งไว้จาก api/staff-auth.js ตอนเข้าสู่ระบบ) — เบราว์เซอร์
+   แนบให้อัตโนมัติทุก fetch แบบ same-origin ไม่ต้องส่ง token เองเหมือนลิงก์ ?k= แบบเดิมก่อนรอบ 3 */
+async function boot() {
+  const s = await api("stats");
+  if (!s.ok) {
+    if (s.code === "session_bad" || s.code === "session_expired") {
+      location.href = "/staff-login.html";
+      return;
+    }
+    const ICON_BY_CODE = { pending_approval: "⏳", suspended: "🚫", need_role: "⛔" };
+    document.getElementById("invalidIcon").textContent = ICON_BY_CODE[s.code] || "⚠️";
+    document.getElementById("invalidTitle").textContent = s.error || "ไม่มีสิทธิ์เข้าใช้งาน";
+    document.getElementById("invalidMsg").textContent = s.hint || "";
+    document.getElementById("invalid").hidden = false;
+    return;
+  }
+  myRole = s.role;
+  const me = await api("me");
+  if (me.ok) myStaffId = me.staffId;
+  document.getElementById("app").hidden = false;
+  // 7 ต.ค. 69: ตั้งค่าทั้งหมด (ชิป/เมนู User/รูปโปรไฟล์/หัวข้อซ้ายมือ) เริ่มทำงานจาก public/staff-settings.js — ต้องเรียกก่อน switchTab("settings")
+  StaffSettings.init(me.ok ? me : null);
+  if (myRole === "admin") document.getElementById("tabBroadcast").hidden = false;
+  if (me.ok && me.canEditSite) document.getElementById("tabCms").hidden = false;
+  renderStats(s.counts);
+  loadList();
+  api("staff-list", { query: { scope: "active" } }).then((r) => { if (r.ok) activeStaffList = r.rows; });
+
+  // เปิดแท็บตาม ?tab= ถ้ามี — ใช้ตอนเด้งกลับจากเชื่อม/ยกเลิกเชื่อมบัญชี Google/Facebook/LINE (api/staff-auth.js ส่ง
+  // ?tab=settings&topic=links&linked=…) · ลิงก์เก่าก่อน 7 ต.ค. 69 (?tab=profile / ?tab=staffmgmt) ยังพาไปหัวข้อที่ตรงกัน
+  const qp = new URLSearchParams(location.search);
+  let wantTab = qp.get("tab"), wantTopic = qp.get("topic");
+  if (wantTab === "profile") { wantTab = "settings"; wantTopic = wantTopic || "links"; }
+  if (wantTab === "staffmgmt") { wantTab = "settings"; wantTopic = "staff"; }
+  if (wantTab === "settings") goSettings(wantTopic || "me");
+  else if (wantTab && document.querySelector(`.navtab[data-tab="${wantTab}"]`)) switchTab(wantTab);
+}
+
+document.getElementById("pdLogoutBtn").onclick = async () => {
+  await fetch("/api/staff-auth?action=logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  location.href = "/staff-login.html";
+};
+
+/* ═══ เมนู avatar มุมขวาบน (กดเปิด/ปิด, กดข้างนอกปิด, Esc ปิด) — ล้อแบบ Traffy Fondue ═══ */
+{
+  const trigger = document.getElementById("profileTrigger");
+  const dropdown = document.getElementById("profileDropdown");
+  const closeMenu = () => { dropdown.hidden = true; trigger.setAttribute("aria-expanded", "false"); };
+  // เมนูเป็น position: fixed — วางชิดขอบขวาของปุ่ม avatar แต่ไม่ให้ล้นขอบจอ (แถบบนตัดเป็น 2 แถวบนจอแคบ/มือถือ ปุ่มจึงไม่ได้อยู่มุมขวาเสมอ)
+  const placeMenu = () => {
+    const r = trigger.getBoundingClientRect(), w = dropdown.offsetWidth;
+    dropdown.style.top = (r.bottom + 8) + "px";
+    dropdown.style.left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)) + "px";
+  };
+  const openMenu = () => { dropdown.hidden = false; placeMenu(); trigger.setAttribute("aria-expanded", "true"); };
+  window.addEventListener("resize", () => { if (!dropdown.hidden) placeMenu(); });
+  trigger.onclick = (e) => { e.stopPropagation(); dropdown.hidden ? openMenu() : closeMenu(); };
+  document.addEventListener("click", (e) => { if (!dropdown.hidden && !document.getElementById("profileMenu").contains(e.target)) closeMenu(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+  document.getElementById("pdProfileBtn").onclick = () => { closeMenu(); goSettings("me"); };
+}
+
+document.querySelectorAll(".navtab[data-tab]").forEach((btn) => btn.onclick = () => switchTab(btn.dataset.tab));
+function switchTab(name, topic) {
+  document.querySelectorAll(".navtab[data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach((p) => p.hidden = p.id !== `panel-${name}`);
+  if (name === "dashboard" && !dashboardLoaded) { dashboardLoaded = true; loadDashboard(); }
+  if (name === "settings") StaffSettings.show(topic); // ไม่ระบุหัวข้อ = เปิดหัวข้อที่ดูค้างไว้ล่าสุด (ครั้งแรก = โปรไฟล์ของฉัน)
+  // มือถือ: แท็บบนสุดเลื่อนแนวนอนได้ — เลื่อนให้แท็บที่เลือกอยู่ในจอ (ลิงก์ตรงไป ?tab=settings ไม่งั้นแท็บถูกตัดอยู่ขอบขวา)
+  const tabs = document.getElementById("tabs"), act = tabs.querySelector(".navtab.active");
+  if (act && tabs.scrollWidth > tabs.clientWidth) tabs.scrollLeft = act.offsetLeft - (tabs.clientWidth - act.offsetWidth) / 2;
+}
+// ไปหน้าตั้งค่าที่หัวข้อใดหัวข้อหนึ่ง (me | links | staff | center | qr) — เมนู User > แก้ไขโปรไฟล์ และลิงก์เด้งกลับจากเชื่อมบัญชีใช้
+function goSettings(topic) { switchTab("settings", topic); }
+
+/* ═══ แท็บ 1: รายการเรื่อง ═══ */
+function renderStats(counts) {
+  const box = document.getElementById("stats");
+  const items = [["", "ทั้งหมด", Object.values(counts).reduce((a, b) => a + b, 0)], ...Object.entries(STATUS_TH).map(([k2, lab]) => [k2, lab, counts[k2] || 0])];
+  box.innerHTML = items.map(([val, lab, num]) =>
+    `<div class="stat ${val === currentStatus ? "active" : ""}" data-status="${val}"><div class="num">${num}</div><div class="lab">${lab}</div></div>`
+  ).join("");
+  box.querySelectorAll(".stat").forEach((el) => el.onclick = () => { currentStatus = el.dataset.status; renderStats(counts); renderList(); });
+}
+
+document.querySelectorAll("[data-quick]").forEach((btn) => btn.onclick = () => {
+  currentQuick = currentQuick === btn.dataset.quick ? "" : btn.dataset.quick;
+  document.querySelectorAll("[data-quick]").forEach((b) => b.classList.toggle("active", b.dataset.quick === currentQuick));
+  renderList();
+});
+document.getElementById("viewGridBtn").onclick = () => { viewMode = "grid"; syncViewButtons(); renderList(); };
+document.getElementById("viewListBtn").onclick = () => { viewMode = "list"; syncViewButtons(); renderList(); };
+function syncViewButtons() {
+  document.getElementById("viewGridBtn").classList.toggle("active", viewMode === "grid");
+  document.getElementById("viewListBtn").classList.toggle("active", viewMode === "list");
+}
+
+async function loadList() {
+  const d = await api("list", { query: { limit: 200 } });
+  allCases = d.ok ? d.rows : [];
+  renderList();
+}
+
+/* 30 ก.ย. 69: แบบคำร้องขอเข้ารับคำปรึกษา — เวลา HH:MM (migration-12) ถ้ามี ไม่งั้นช่วงเช้า/บ่ายแบบเดิม
+   · เรื่องที่ไม่มี citizen_line_uid = ยื่นผ่านเว็บ (ไม่มีไลน์ ต้องโทรกลับ/ส่งข้อความไลน์ไม่ได้) */
+function apptTimeLabel(c) {
+  if (c.preferred_time) return c.preferred_time + " น.";
+  return c.preferred_time_slot === "morning" ? "ช่วงเช้า" : c.preferred_time_slot === "afternoon" ? "ช่วงบ่าย" : "-";
+}
+function isWebCase(c) { return !c.citizen_line_uid; }
+const WEB_BADGE = "🌐 ยื่นผ่านเว็บ (ไม่มีไลน์)";
+/* 2 ต.ค. 69 รับเรื่องทางแชต — ประชาชนพิมพ์เล่าในแชตไลน์แล้วกดส่ง (source='chat' · ยังไม่รัน migration-14 = source 'line' +
+   ป้าย "[ช่องทาง: แจ้งทางแชตไลน์]" ท้ายรายละเอียด — ตรงกับ isChatCase() ใน api/_cases.js) · จองคิวจากแชตไม่มีวัน-เวลา */
+const CHAT_SOURCE_TAG = "[ช่องทาง: แจ้งทางแชตไลน์]";
+function isChatCase(c) { return c.source === "chat" || String(c.detail || "").includes(CHAT_SOURCE_TAG); }
+const CHAT_BADGE = "💬 แจ้งทางแชตไลน์";
+function apptWhenLabel(c) {
+  if (c.preferred_date) return `${fmtApptDate(c.preferred_date)} · ${apptTimeLabel(c)}`;
+  return c.citizen_phone ? "ยังไม่ระบุวัน — โทรนัด" : "ยังไม่ระบุวัน — นัดผ่านปุ่มแจ้งผลประชาชน";
+}
+const TYPE_FILTERS = [["", "ทั้งหมด"], ["consult", "⚖️ ปรึกษา"], ["appointment", "📅 จองคิว"], ["complaint", "📝 ร้องเรียน"], ["chat", "💬 แจ้งทางแชต"]];
+function matchesType(c, t) {
+  if (!t) return true;
+  return t === "chat" ? isChatCase(c) : c.case_type === t;
+}
+// ตัวเลขบนชิป = จำนวนตามตัวกรองอื่นที่เลือกอยู่ (สถานะ/ค้างนาน/ยังไม่มอบหมาย/ค้นหา) — กดชิปเดิมซ้ำ = กลับไป "ทั้งหมด"
+function renderTypeChips(baseRows) {
+  const box = document.getElementById("typeChips");
+  box.innerHTML = TYPE_FILTERS.map(([val, lab]) =>
+    `<button type="button" class="chip type-chip${val === currentType ? " active" : ""}" data-type="${val}" aria-pressed="${val === currentType}">${lab} <span class="chip-count">${baseRows.filter((c) => matchesType(c, val)).length}</span></button>`
+  ).join("");
+  box.querySelectorAll("[data-type]").forEach((btn) => btn.onclick = () => {
+    currentType = currentType === btn.dataset.type ? "" : btn.dataset.type;
+    renderList();
+  });
+}
+function fmtApptDate(iso) {
+  if (!iso) return "-";
+  const d = new Date(iso + "T00:00:00+07:00");
+  return `${DAY_TH[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
+}
+function agoLabel(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return Math.max(0, mins) + " นาทีที่แล้ว";
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + " ชม.ที่แล้ว";
+  return Math.floor(hrs / 24) + " วันที่แล้ว";
+}
+function durationLabel(fromIso, toIso) {
+  const ms = new Date(toIso).getTime() - new Date(fromIso).getTime();
+  const hrs = Math.floor(ms / 3600000);
+  if (hrs < 24) return hrs + " ชม.";
+  return Math.floor(hrs / 24) + " วัน " + (hrs % 24) + " ชม.";
+}
+
+function renderList() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const baseRows = allCases.filter((c) => {
+    if (currentStatus && c.status !== currentStatus) return false;
+    if (currentQuick === "stale" && !((Date.now() - new Date(c.created_at).getTime()) / 86400000 > 3 && c.status !== "closed")) return false;
+    if (currentQuick === "unassigned" && c.assigned_staff_id) return false;
+    if (q && !(c.case_no + " " + (c.citizen_name || "") + " " + (c.citizen_phone || "") + " " + c.detail).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderTypeChips(baseRows);
+  const rows = baseRows.filter((c) => matchesType(c, currentType));
+
+  document.getElementById("resultCount").textContent = `พบ ${rows.length} รายการ`;
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+  list.className = viewMode === "grid" ? "case-grid" : "case-list-view";
+  if (!rows.length) { list.innerHTML = ""; empty.hidden = false; return; }
+  empty.hidden = true;
+  list.innerHTML = rows.map(viewMode === "grid" ? cardHtml : rowCompactHtml).join("");
+  list.querySelectorAll("[data-id]").forEach((el) => el.onclick = () => openCase(Number(el.dataset.id)));
+}
+
+function cardHtml(r) {
+  const evidenceChip = (r.evidence_paths || []).length ? `📎 ${r.evidence_paths.length} ไฟล์` : "";
+  const assigneeChip = r.assignee_name ? `👤 ${esc(r.assignee_name)}` : "👤 ยังไม่มอบหมาย";
+  return `<button class="case-card status-${r.status}" data-id="${r.id}">
+    <div class="cc-top">
+      <span class="pill status-pill status-${r.status}">${STATUS_TH[r.status] || r.status}</span>
+      <span class="pill assignee-pill ${r.assignee_name ? "" : "unassigned"}">${assigneeChip}</span>
+    </div>
+    <div class="cc-meta">
+      <span class="cat-pill">${esc(CATEGORY_TH[r.category] || r.category)}</span>
+      <span class="caseno">${r.case_no}</span>
+    </div>
+    <div class="cc-type type-${r.case_type}"><span class="icon">${TYPE_ICON[r.case_type] || "📄"}</span><span>${CASE_TYPE_TH[r.case_type] || r.case_type}</span></div>
+    ${r.case_type === "appointment" ? `<div class="cc-appt">📅 นัดที่ขอ: <b>${apptWhenLabel(r)}</b></div>` : ""}
+    ${isWebCase(r) ? `<div class="cc-web"><span class="pill web-pill">${WEB_BADGE}</span></div>` : ""}
+    ${isChatCase(r) ? `<div class="cc-web"><span class="pill chat-pill">${CHAT_BADGE}</span></div>` : ""}
+    <div class="cc-detail">${esc(r.detail)}</div>
+    <div class="cc-assignee-line">เจ้าหน้าที่ที่ดูแล: <b>${r.assignee_name ? esc(r.assignee_name) : "ยังไม่มอบหมาย"}</b></div>
+    <div class="cc-divider"></div>
+    <div class="cc-dates">
+      <span>แจ้งเมื่อ<br><b>${agoLabel(r.created_at)}</b></span>
+      <span class="right">อัปเดตล่าสุด<br><b>${agoLabel(r.updated_at)}</b></span>
+    </div>
+    <div class="cc-bottom">
+      <span class="evid">${evidenceChip}</span>
+      <span class="manage-btn">จัดการ ›</span>
+    </div>
+  </button>`;
+}
+
+function rowCompactHtml(r) {
+  return `<button class="case-row-compact status-${r.status}" data-id="${r.id}">
+    <span class="icon">${TYPE_ICON[r.case_type] || "📄"}</span>
+    <div class="mid">
+      <div class="line1"><span class="caseno">${r.case_no}</span><span class="pill status-pill status-${r.status}">${STATUS_TH[r.status] || r.status}</span>${isWebCase(r) ? `<span class="pill web-pill">🌐 เว็บ</span>` : ""}${isChatCase(r) ? `<span class="pill chat-pill">💬 แชต</span>` : ""}</div>
+      <div class="line2">${esc(r.detail)}</div>
+    </div>
+    <div class="assignee-col">${r.assignee_name ? esc(r.assignee_name) : "ยังไม่มอบหมาย"}</div>
+    <div class="ago-col">${agoLabel(r.created_at)}</div>
+  </button>`;
+}
+
+document.getElementById("q").addEventListener("input", renderList);
+document.getElementById("exportBtn").onclick = () => {
+  const url = new URL(location.origin + "/api/staff");
+  url.searchParams.set("action", "export"); url.searchParams.set("k", k);
+  if (currentStatus) url.searchParams.set("status", currentStatus);
+  location.href = url.toString();
+};
+
+async function openCase(id) {
+  const d = await api("case", { query: { id } });
+  if (!d.ok) return alert(d.error || "โหลดข้อมูลไม่สำเร็จ");
+  const c = d.case;
+  const sheet = document.getElementById("sheet");
+  const nextOptions = (NEXT_STATUS[c.status] || []).map((s) =>
+    `<button class="btn" data-next="${s}">✏️ ${STATUS_TH[s]}</button>`
+  ).join("") || (c.status === "withdrawn" ? "<em>ยกเลิกโดยผู้แจ้งเรื่องเองแล้ว</em>" : "<em>ปิดเรื่องแล้ว</em>");
+
+  const evidenceCard = (c.evidence_paths || []).length ? `
+    <div class="side-card">
+      <div class="side-title">📎 หลักฐานแนบ (จากประชาชน)</div>
+      <div class="evidence-list">${(d.evidenceUrls || []).map((u, i) => u ? `<a href="${u}" target="_blank" rel="noopener">📄 ไฟล์ ${i + 1}</a>` : "").join("")}</div>
+    </div>` : "";
+
+  // เอกสาร/รูปผลการดำเนินการ (แนวคิดจาก Traffy Fondue "รูปภาพดำเนินการ" เพิ่ม 17 ก.ย. 69) — เจ้าหน้าที่
+  // แนบให้ประชาชนดูได้ตลอด ไม่ผูกกับปุ่มปิดเรื่องโดยตรง (แนบก่อน/หลังปิดเรื่องก็ได้ ลดความซับซ้อนของ UI)
+  const resolutionLinks = (d.resolutionUrls || []).map((u, i) => u ? `<a href="${u}" target="_blank" rel="noopener">📄 ไฟล์ ${i + 1}</a>` : "").join("");
+  const resolutionCard = `
+    <div class="side-card">
+      <div class="side-title">📄 เอกสาร/รูปผลการดำเนินการ (ให้ประชาชนดู)</div>
+      <div class="evidence-list" id="resolutionList">${resolutionLinks}</div>
+      <input type="file" id="resolutionFileInput" class="no-print" accept="image/jpeg,image/png,application/pdf" multiple style="margin-top:8px">
+      <div class="filelist no-print" id="resolutionPending"></div>
+      <button class="btn no-print" id="saveResolution" style="margin-top:8px" disabled>📤 บันทึกเอกสาร</button>
+    </div>`;
+
+  // 2 ต.ค. 69: จองคิวจากแชตไม่มีวัน-เวลา → "ยังไม่ระบุวัน — โทรนัด" · ช่องทางแชตไลน์มีป้ายของตัวเอง (แยกจากฟอร์มผ่านไลน์)
+  const apptRow = (c.case_type === "appointment"
+      ? (c.preferred_date
+        ? `<div class="dk">วันนัดที่ขอ</div><div class="dv appt-dv">${fmtApptDate(c.preferred_date)}</div><div class="dk">เวลาที่ขอ</div><div class="dv appt-dv">${apptTimeLabel(c)}</div>`
+        : `<div class="dk">วันนัดที่ขอ</div><div class="dv appt-dv">${apptWhenLabel(c)}</div>`)
+      : "")
+    + (c.citizen_district ? `<div class="dk">อำเภอที่อยู่</div><div class="dv">${esc(c.citizen_district)}</div>` : "")
+    + `<div class="dk">ช่องทาง</div><div class="dv">${isWebCase(c) ? `<span class="pill web-pill">${WEB_BADGE}</span>` : isChatCase(c) ? `<span class="pill chat-pill">${CHAT_BADGE}</span> <span class="chan-hint">พิมพ์เล่าในแชต ไม่ได้กรอกแบบฟอร์ม</span>` : "💬 LINE OA (แบบฟอร์ม)"}</div>`;
+  const respondentRow = c.respondent ? `<div class="dk">ผู้ถูกร้อง/หน่วยงาน</div><div class="dv">${esc(c.respondent)}</div>` : "";
+  const demandRow = c.demand ? `<div class="dk">ข้อเรียกร้อง</div><div class="dv">${esc(c.demand)}</div>` : "";
+  const satisfactionRow = c.satisfaction_rating ? `<div class="dk">ความพึงพอใจ</div><div class="dv">${"⭐".repeat(c.satisfaction_rating)}${"☆".repeat(5 - c.satisfaction_rating)} (${c.satisfaction_rating}/5)</div>` : "";
+
+  const timeline = (d.events || []).map((e) => {
+    const since = durationLabel(c.created_at, e.created_at);
+    return `<div class="tl-row">
+      <div class="tl-dot"></div>
+      <div>
+        <div class="tl-when">${new Date(e.created_at).toLocaleString("th-TH")}</div>
+        <div class="tl-action${e.action === "citizen_message" ? " tl-msg" : ""}">${esc(actionLabel(e.action))}${e.note ? (e.action === "citizen_message" ? "\n" : " — ") + esc(e.note) : ""}</div>
+        <div class="tl-since">หลังรับแจ้ง ${since}</div>
+      </div>
+    </div>`;
+  }).reverse().join("");
+
+  sheet.innerHTML = `
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-caseno">${c.case_no}</div>
+        <div class="sheet-sub">ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</div>
+      </div>
+      <div class="no-print" style="display:flex;gap:8px">
+        <button class="btn small" id="printCaseBtn">🖨️ พิมพ์/บันทึกเป็น PDF</button>
+        <button class="close" id="closeSheet">✕</button>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <div class="sheet-main">
+        <div class="side-card">
+          <div class="side-title-row">
+            <div class="side-title">📄 รายละเอียดเรื่อง</div>
+            <span class="pill status-pill status-${c.status}">${STATUS_TH[c.status]}</span>
+          </div>
+          <div class="detail-grid">
+            <div class="dk">ประเภท</div><div class="dv">${TYPE_ICON[c.case_type] || ""} ${CASE_TYPE_TH[c.case_type] || c.case_type}</div>
+            <div class="dk">หมวดกฎหมาย</div><div class="dv"><select id="categorySelect" class="inline-select">${CATEGORY_KEYS.map((k2) => `<option value="${k2}" ${k2 === c.category ? "selected" : ""}>${esc(CATEGORY_TH[k2])}</option>`).join("")}</select> <span id="categorySaved" class="save-hint"></span></div>
+            <div class="dk">แจ้งเมื่อ</div><div class="dv">${new Date(c.created_at).toLocaleString("th-TH")}</div>
+            <div class="dk">อัปเดตล่าสุด</div><div class="dv">${new Date(c.updated_at).toLocaleString("th-TH")}</div>
+            ${apptRow}
+            <div class="dk">รายละเอียด</div><div class="dv" style="white-space:pre-wrap">${esc(c.detail)}</div>
+            ${respondentRow}
+            ${demandRow}
+            ${satisfactionRow}
+          </div>
+
+          <div class="quickmenu-title no-print">🔲 เมนูจัดการด่วน</div>
+          <div class="quickmenu-row no-print">
+            <div class="status-actions">${nextOptions}</div>
+            <button class="btn" data-scroll="noteBox">🗒️ บันทึกภายใน</button>
+            <button class="btn" data-scroll="notifyBox">📨 แจ้งผลประชาชน</button>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-title">🗒️ บันทึกภายใน (เจ้าหน้าที่เห็นกันเอง)</div>
+          <div class="canned-row no-print">${CANNED_NOTES.map((t) => `<button type="button" class="chip tiny" data-fill-note="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+          <textarea id="noteBox">${esc(c.internal_note || "")}</textarea>
+          <button class="btn no-print" id="saveNote" style="margin-top:8px">บันทึก</button>
+        </div>
+
+        ${isWebCase(c) ? `<div class="side-card no-print">
+          <div class="side-title">📨 แจ้งผลประชาชน</div>
+          <div class="web-note">เรื่องนี้ยื่นผ่านเว็บไซต์ ไม่มีบัญชีไลน์ให้ส่งข้อความ — กรุณาโทรแจ้งผลที่ ${c.citizen_phone ? `<a href="tel:${esc(c.citizen_phone)}">${esc(c.citizen_phone)}</a>` : "เบอร์ผู้ติดต่อ"} แล้วจดไว้ในบันทึกภายใน</div>
+        </div>` : `<div class="side-card no-print">
+          <div class="side-title">📨 แจ้งผลประชาชน (ส่งเข้าไลน์)</div>
+          <div class="canned-row">${CANNED_MESSAGES.map((t) => `<button type="button" class="chip tiny" data-fill-notify="${esc(t)}">${esc(t.length > 22 ? t.slice(0, 22) + "…" : t)}</button>`).join("")}</div>
+          <textarea id="notifyBox" placeholder="ข้อความที่จะส่งถึงประชาชน"></textarea>
+          <button class="btn primary" id="sendNotify" style="margin-top:8px">ส่งข้อความ</button>
+        </div>`}
+
+        <div class="side-card">
+          <div class="side-title">🕐 Timeline การดำเนินงาน</div>
+          <div class="timeline">${timeline || "-"}</div>
+        </div>
+      </div>
+
+      <div class="sheet-sidebar">
+        <div class="side-card">
+          <div class="side-title">🤝 หน่วยงานร่วม</div>
+          <div class="orgline">อบจ.สุพรรณบุรี (เจ้าของระบบ)<br>สภาทนายความจังหวัดสุพรรณบุรี (ร่วมดำเนินการ)</div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-title">👤 ผู้รับผิดชอบ</div>
+          <div class="assignee-box">
+            <div class="lab">เจ้าหน้าที่ผู้ดูแล</div>
+            <div class="val">${c.assignee_name ? esc(c.assignee_name) : "ยังไม่มอบหมาย"}</div>
+          </div>
+          <select id="assignSelect" class="no-print" style="width:100%;margin-top:8px;padding:8px;border:1px solid #c7d3e6;border-radius:8px;font-family:inherit;font-size:0.85rem">
+            <option value="">— เลือกเจ้าหน้าที่ —</option>
+            ${activeStaffList.map((s) => `<option value="${s.id}">${esc(s.display_name || "เจ้าหน้าที่ #" + s.id)}</option>`).join("")}
+          </select>
+          <button class="btn no-print" id="assignBtn" style="width:100%;margin-top:8px">➕ มอบหมายเจ้าหน้าที่</button>
+        </div>
+
+        <div class="side-card">
+          <div class="side-title">📇 ข้อมูลผู้ติดต่อ</div>
+          <div class="contact-rows">
+            <div><span class="lab">ชื่อ:</span> ${esc(c.citizen_name || "(ไม่ระบุชื่อ)")}</div>
+            <div><span class="lab">เบอร์โทร:</span> ${c.citizen_phone ? `<a href="tel:${esc(c.citizen_phone)}">${esc(c.citizen_phone)}</a>` : "-"}</div>
+            ${isWebCase(c) ? `<div><span class="lab">LINE:</span> <span class="pill web-pill">${WEB_BADGE}</span></div>` : `<div class="uidrow"><span class="lab">LINE UID:</span> <span class="uidval">${esc((c.citizen_line_uid || "").slice(0, 6))}••••${esc((c.citizen_line_uid || "").slice(-4))}</span> <button class="copybtn no-print" id="copyUidBtn">คัดลอก</button></div>`}
+            <div><span class="lab">PDPA:</span> ${c.pdpa_consent ? '<span class="ok">✓ ยินยอมแล้ว</span>' : "-"}</div>
+          </div>
+        </div>
+
+        ${evidenceCard}
+        ${resolutionCard}
+      </div>
+    </div>
+  `;
+  document.getElementById("overlay").hidden = false;
+  document.getElementById("closeSheet").onclick = closeSheet;
+  // พิมพ์/บันทึกเป็น PDF — ใช้ dialog พิมพ์ของเบราว์เซอร์เอง (แนวคิดจากปุ่ม "พิมพ์หน้าเว็บ" ของ Traffy
+  // Fondue) ไม่เรนเดอร์ PDF ฝั่งเซิร์ฟเวอร์ (เลี่ยงความยุ่งยากเรื่อง Chromium บน Vercel เหมือนที่ตั้งใจ
+  // เลี่ยงไว้กับ Rich Menu แล้ว) เลือก "บันทึกเป็น PDF" เป็นปลายทางในกล่องพิมพ์ได้จากเบราว์เซอร์ทุกตัว
+  document.getElementById("printCaseBtn").onclick = () => window.print();
+
+  sheet.querySelectorAll("[data-next]").forEach((btn) => btn.onclick = async () => {
+    const note = prompt("หมายเหตุ (ถ้ามี):", "") || "";
+    const r = await api("status", { method: "POST", body: { id: c.id, status: btn.dataset.next, note } });
+    if (!r.ok) return alert(r.error || "เปลี่ยนสถานะไม่สำเร็จ");
+    closeSheet(); boot();
+  });
+  sheet.querySelectorAll("[data-scroll]").forEach((btn) => btn.onclick = () => {
+    document.getElementById(btn.dataset.scroll).scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById(btn.dataset.scroll).focus();
+  });
+  document.getElementById("saveNote").onclick = async () => {
+    const r = await api("note", { method: "POST", body: { id: c.id, note: document.getElementById("noteBox").value } });
+    if (!r.ok) return alert(r.error || "บันทึกไม่สำเร็จ");
+    alert("บันทึกแล้ว");
+  };
+  // เรื่องจากเว็บไม่มีกล่องแจ้งผลทางไลน์/ปุ่มคัดลอก UID (30 ก.ย. 69) — ผูกปุ่มเฉพาะตอนมีอยู่จริง
+  if (document.getElementById("sendNotify")) document.getElementById("sendNotify").onclick = async () => {
+    const message = document.getElementById("notifyBox").value.trim();
+    if (!message) return;
+    const r = await api("notify-citizen", { method: "POST", body: { id: c.id, message } });
+    if (!r.ok) return alert(r.error || "ส่งไม่สำเร็จ");
+    alert(r.sent ? "ส่งข้อความถึงประชาชนแล้ว" : "บันทึกข้อความแล้ว แต่ส่งเข้าไลน์ไม่สำเร็จ (อาจเลิกติดตาม OA แล้ว)");
+    document.getElementById("notifyBox").value = "";
+  };
+  document.getElementById("assignBtn").onclick = async () => {
+    const staffId = document.getElementById("assignSelect").value;
+    if (!staffId) return alert("กรุณาเลือกเจ้าหน้าที่");
+    const r = await api("assign", { method: "POST", body: { id: c.id, staff_id: Number(staffId) } });
+    if (!r.ok) return alert(r.error || "มอบหมายไม่สำเร็จ");
+    closeSheet(); boot();
+  };
+  const copyBtn = document.getElementById("copyUidBtn");
+  if (copyBtn) copyBtn.onclick = () => {
+    navigator.clipboard.writeText(c.citizen_line_uid || "").then(() => {
+      copyBtn.textContent = "คัดลอกแล้ว ✓";
+      setTimeout(() => { copyBtn.textContent = "คัดลอก"; }, 2000);
+    }).catch(() => {});
+  };
+
+  // แก้หมวดหมู่ย้อนหลัง (แนวคิดจาก Traffy Fondue "เปลี่ยนประเภทเรื่องแจ้ง") — บันทึกทันทีตอนเปลี่ยน ไม่ต้องกดปุ่มแยก
+  document.getElementById("categorySelect").onchange = async (e) => {
+    const saved = document.getElementById("categorySaved");
+    const r = await api("recategorize", { method: "POST", body: { id: c.id, category: e.target.value } });
+    if (!r.ok) { alert(r.error || "แก้หมวดไม่สำเร็จ"); return; }
+    saved.textContent = "✓ บันทึกแล้ว"; setTimeout(() => { saved.textContent = ""; }, 2000);
+    loadList(); // อัปเดตหมวดในการ์ดรายการ/แดชบอร์ดหลังปิดหน้าต่างนี้
+  };
+
+  // ข้อความสำเร็จรูป — กดแล้วแทรกต่อท้าย (ไม่ทับของที่เจ้าหน้าที่พิมพ์ไว้แล้วถ้ามี)
+  sheet.querySelectorAll("[data-fill-note]").forEach((btn) => btn.onclick = () => {
+    const box = document.getElementById("noteBox");
+    box.value = box.value ? box.value + "\n" + btn.dataset.fillNote : btn.dataset.fillNote;
+    box.focus();
+  });
+  sheet.querySelectorAll("[data-fill-notify]").forEach((btn) => btn.onclick = () => {
+    const box = document.getElementById("notifyBox");
+    box.value = btn.dataset.fillNotify; // ข้อความถึงประชาชนควรเป็นข้อความเดียวชัดเจน ไม่ต่อพ่วงหลายอัน
+    box.focus();
+  });
+
+  // เอกสาร/รูปผลการดำเนินการ — อัปโหลดตรงไป Supabase Storage ด้วย signed URL เหมือนฟอร์มประชาชน
+  const pendingResolutionPaths = [];
+  const resolutionFileInput = document.getElementById("resolutionFileInput");
+  const resolutionPending = document.getElementById("resolutionPending");
+  const saveResolutionBtn = document.getElementById("saveResolution");
+  resolutionFileInput.addEventListener("change", async () => {
+    const files = Array.from(resolutionFileInput.files).slice(0, 3 - pendingResolutionPaths.length);
+    for (const file of files) {
+      const row = document.createElement("div");
+      row.className = "file-row";
+      row.textContent = `⏳ ${file.name}`;
+      resolutionPending.appendChild(row);
+      if (file.size > 8 * 1024 * 1024) { row.classList.add("error"); row.textContent = `❌ ${file.name} — ไฟล์ใหญ่เกิน 8MB`; continue; }
+      if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) { row.classList.add("error"); row.textContent = `❌ ${file.name} — ชนิดไฟล์ไม่รองรับ`; continue; }
+      try {
+        if (!sbClient) await initSupabase();
+        const ur = await api("resolution-upload-url", { method: "POST", body: { contentType: file.type } });
+        if (!ur.ok) throw new Error(ur.error || "ขอลิงก์อัปโหลดไม่สำเร็จ");
+        const { error } = await sbClient.storage.from("evidence").uploadToSignedUrl(ur.path, ur.token, file);
+        if (error) throw error;
+        pendingResolutionPaths.push(ur.path);
+        row.textContent = `✅ ${file.name}`;
+        saveResolutionBtn.disabled = false;
+      } catch (err) {
+        row.classList.add("error"); row.textContent = `❌ ${file.name} — อัปโหลดไม่สำเร็จ`;
+        console.error(err);
+      }
+    }
+    resolutionFileInput.value = "";
+  });
+  saveResolutionBtn.onclick = async () => {
+    if (!pendingResolutionPaths.length) return;
+    const r = await api("add-resolution", { method: "POST", body: { id: c.id, paths: pendingResolutionPaths } });
+    if (!r.ok) return alert(r.error || "บันทึกไม่สำเร็จ");
+    closeSheet(); openCase(c.id);
+  };
+}
+
+function actionLabel(a) {
+  return {
+    created: "รับเรื่องเข้าระบบ", status_changed: "เปลี่ยนสถานะ", note_added: "บันทึกภายใน", notified_citizen: "แจ้งผลประชาชน",
+    satisfaction_rated: "ให้คะแนนความพึงพอใจ", recategorized: "แก้หมวดหมู่", evidence_added: "แนบหลักฐานเพิ่ม (จากประชาชน)",
+    resolution_added: "แนบเอกสารผลดำเนินการ",
+    citizen_message: "💬 ข้อความเพิ่มเติมจากประชาชน", // 2 ต.ค. 69 รับเรื่องทางแชต — ประชาชนกด "เพิ่มข้อมูลเข้าเรื่อง" ในไลน์
+  }[a] || a;
+}
+function closeSheet() { document.getElementById("overlay").hidden = true; }
+document.getElementById("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") closeSheet(); });
+
+/* ═══ แท็บ 2: แดชบอร์ด ═══ */
+let dashData = null, trendMode = "daily";
+document.querySelectorAll("#trendSeg button").forEach((btn) => btn.onclick = () => {
+  trendMode = btn.dataset.mode;
+  document.querySelectorAll("#trendSeg button").forEach((b) => b.classList.toggle("active", b === btn));
+  renderTrend();
+});
+
+async function loadDashboard() {
+  const d = await api("dashboard");
+  if (!d.ok) return;
+  dashData = d;
+  renderTrend();
+  renderCategoryBars(d.byCategory || {});
+  renderRatioBars("satCategoryBars", "satCategoryEmpty", d.satisfactionByCategory || {}, (v) => v.toFixed(1) + " ⭐", 5);
+  renderRatioBars("closeDaysCategoryBars", "closeDaysCategoryEmpty", d.closeDaysByCategory || {}, (v) => v.toFixed(1) + " วัน", null);
+  document.getElementById("avgCloseNum").textContent = d.avgCloseDays == null ? "-" : d.avgCloseDays.toFixed(1);
+  document.getElementById("resolutionRateNum").textContent = d.resolutionRate == null ? "-" : `${Math.round(d.resolutionRate * 100)}%`;
+  document.getElementById("overdueNum").textContent = d.overdueCount ?? "-";
+  document.getElementById("quotaNum").textContent = d.quota ? `${d.quota.used}/${d.quota.limit}` : "-";
+  document.getElementById("satisfactionNum").textContent = d.avgSatisfaction == null ? "-" : `${d.avgSatisfaction.toFixed(1)} ⭐ (${d.ratedCount})`;
+  document.getElementById("totalNum").textContent = d.totalCases ?? "-";
+}
+
+/* กราฟแท่งแนวนอนแยกตามหมวด (ใช้ร่วมกันสำหรับความพึงพอใจ/วันเฉลี่ยปิดเรื่อง — แนวคิดจาก Traffy Fondue
+   เพิ่ม 17 ก.ย. 69) ต่างจาก renderCategoryBars ตรงที่ค่าเป็น "ค่าเฉลี่ย" ไม่ใช่ "จำนวนนับ" fixedMax ใส่
+   ไว้สำหรับกราฟดาว (เต็ม 5 เสมอ) ส่วนกราฟวันปล่อยเป็น null ให้สเกลตามค่ามากสุดในชุดข้อมูล */
+function renderRatioBars(boxId, emptyId, byCategory, fmt, fixedMax) {
+  const box = document.getElementById(boxId);
+  const empty = document.getElementById(emptyId);
+  const entries = Object.entries(byCategory).sort(([, a], [, b]) => b - a);
+  if (!entries.length) { box.innerHTML = ""; empty.hidden = false; return; }
+  empty.hidden = true;
+  const max = fixedMax || Math.max(0.1, ...entries.map(([, v]) => v));
+  box.innerHTML = entries.map(([cat, v]) => `
+    <div class="hbar-row">
+      <div class="lab">${esc(CATEGORY_TH[cat] || cat)}</div>
+      <div class="track"><div class="fill" style="width:${Math.min(100, (v / max) * 100)}%"></div></div>
+      <div class="val">${fmt(v)}</div>
+    </div>`).join("");
+}
+
+function weekKey(iso) {
+  const d = new Date(iso + "T00:00:00+07:00");
+  const day = d.getDay();
+  const monday = new Date(d.getTime() - ((day + 6) % 7) * 86400000); // ต้นสัปดาห์ = จันทร์
+  return monday.toISOString().slice(0, 10);
+}
+
+function renderTrend() {
+  if (!dashData) return;
+  const daily = dashData.daily || [];
+  const box = document.getElementById("trendBars");
+  const empty = document.getElementById("trendEmpty");
+  if (!daily.length) { box.innerHTML = ""; empty.hidden = false; return; }
+  empty.hidden = true;
+
+  let points;
+  if (trendMode === "daily") {
+    points = daily.slice(-30).map((r) => ({ label: r.date.slice(5), value: r.count }));
+  } else {
+    const byWeek = {};
+    for (const r of daily) { const wk = weekKey(r.date); byWeek[wk] = (byWeek[wk] || 0) + r.count; }
+    points = Object.entries(byWeek).sort(([a], [b]) => a.localeCompare(b)).map(([wk, count]) => ({ label: wk.slice(5), value: count }));
+  }
+  const max = Math.max(1, ...points.map((p) => p.value));
+  box.innerHTML = points.map((p) =>
+    `<div class="bar" style="height:${Math.max(4, (p.value / max) * 90)}px" title="${p.label}: ${p.value}"><span class="bv">${p.value || ""}</span></div>`
+  ).join("");
+}
+
+function renderCategoryBars(byCategory) {
+  const box = document.getElementById("categoryBars");
+  const empty = document.getElementById("categoryEmpty");
+  const entries = Object.entries(byCategory).sort(([, a], [, b]) => b - a);
+  if (!entries.length) { box.innerHTML = ""; empty.hidden = false; return; }
+  empty.hidden = true;
+  const max = Math.max(1, ...entries.map(([, v]) => v));
+  box.innerHTML = entries.map(([cat, v]) => `
+    <div class="hbar-row">
+      <div class="lab">${esc(CATEGORY_TH[cat] || cat)}</div>
+      <div class="track"><div class="fill" style="width:${(v / max) * 100}%"></div></div>
+      <div class="val">${v}</div>
+    </div>`).join("");
+}
+
+boot();
+</script>
+</body>
+</html>

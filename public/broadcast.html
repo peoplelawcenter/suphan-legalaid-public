@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>ส่งประกาศถึงเพื่อนทุกคน — ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</title>
+<!-- 5 ต.ค. 69: ฟอนต์โฮสต์เอง (แทน Google Fonts — PDPA ไม่ส่ง IP ผู้ชมไป Google) ดู public/assets/fonts/fonts.css -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/staff.css">
+<link rel="stylesheet" href="/broadcast.css">
+<link rel="icon" href="/assets/logo-pao.png">
+<!-- อัปโหลดรูปโปสเตอร์ตรงไป Supabase Storage ด้วย signed URL (Vercel รับ body ได้แค่ 4.5MB) — คีย์ที่ใช้คือ
+     anon/publishable key ตั้งใจให้เปิดเผยได้ ไม่ใช่ service key (ดู api/_broadcast.js / api/_evidence.js) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
+  integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- หน้าส่งโปสเตอร์ข่าว ปชส. ถึงเพื่อนทุกคนของ LINE OA (เฉพาะแอดมิน) — เพิ่ม 24 ก.ย. 69 ตามคำสั่งบอส
+     แบบเดียวกับ #ประกาศรูป ของไลน์สำนักปลัด แต่กดจากหน้าเว็บ · กติกาทั้งหมดอยู่หัวไฟล์ api/_broadcast.js -->
+
+<div id="invalid" class="state-box" hidden>
+  <div class="icon" id="invalidIcon">⚠️</div>
+  <h2 id="invalidTitle">ไม่มีสิทธิ์เข้าใช้งาน</h2>
+  <p id="invalidMsg"></p>
+  <p><a href="/staff.html">← กลับหน้าหลังบ้าน</a></p>
+</div>
+
+<div id="loading" class="state-box"><div class="icon">⏳</div><p>กำลังโหลด…</p></div>
+
+<div id="app" hidden>
+  <div class="navbar">
+    <img src="/assets/logo-pao.png" class="org-logo" alt="" />
+    <div class="org-name">
+      <div class="lab">หน่วยงานปัจจุบัน</div>
+      <div class="val">ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</div>
+    </div>
+    <a class="navbtn back-link" href="/staff.html" aria-label="กลับหน้าหลังบ้าน">←<span class="hide-sm">กลับหน้าหลังบ้าน</span></a>
+  </div>
+
+  <div class="panel">
+    <div class="page-head">
+      <h1>📢 ส่งประกาศถึงเพื่อนทุกคนใน LINE OA</h1>
+      <p>ส่งโปสเตอร์ข่าวประชาสัมพันธ์เข้าแชตของทุกคนที่เพิ่มเพื่อน LINE OA ของศูนย์ (@073kbdgu) — ผู้รับเห็นรูปเต็มใบ แตะขยาย บันทึก และแชร์ต่อได้</p>
+    </div>
+
+    <div class="bc-stats" id="stats">
+      <div class="bc-stat"><div class="num" id="statReach">–</div><div class="lab">จะส่งถึงประมาณ (คน)</div></div>
+      <div class="bc-stat"><div class="num" id="statLeft">–</div><div class="lab" id="statLeftLab">โควตาคงเหลือเดือนนี้</div></div>
+      <div class="bc-stat" id="statAfterBox"><div class="num" id="statAfter">–</div><div class="lab">คงเหลือหลังส่ง (ประมาณ)</div></div>
+    </div>
+    <p class="bc-stats-note" id="statsNote"></p>
+
+    <div class="bc-layout" id="composeArea">
+      <div class="bc-card bc-form">
+        <div class="bc-step">
+          <div class="bc-step-title"><span class="n">1</span> รูปโปสเตอร์ <span class="opt" id="imgCount">(1–4 รูป)</span></div>
+          <button type="button" class="dropzone" id="dropzone">
+            <div class="big">🖼️</div>
+            <div class="t1">แตะเพื่อเลือกรูป หรือลากรูปมาวางที่นี่</div>
+            <div class="t2">JPG หรือ PNG · สูงสุด 4 รูปต่อครั้ง · วางรูปจากคลิปบอร์ด (Ctrl+V) ได้</div>
+          </button>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple hidden>
+          <div class="thumbs" id="thumbs"></div>
+          <p class="bc-hint">รูปจะเรียงในแชตตามลำดับนี้ · รูปใหญ่ระบบย่อให้อัตโนมัติ · ไฟล์ HEIC จาก iPhone ให้แปลงเป็น JPG ก่อน</p>
+        </div>
+
+        <div class="bc-step">
+          <div class="bc-step-title"><span class="n">2</span> ข้อความใต้รูป <span class="opt">(ไม่บังคับ)</span></div>
+          <textarea id="caption" class="bc-textarea" maxlength="1200" placeholder="เช่น ศูนย์ช่วยเหลือประชาชนทางกฎหมาย ขอเชิญประชาชนรับคำปรึกษากฎหมายฟรี ทุกวันจันทร์–ศุกร์ เวลา 08.30–16.30 น."></textarea>
+          <div class="counter" id="capCounter">0 / 1000</div>
+        </div>
+
+        <div class="bc-step">
+          <div class="bc-step-title"><span class="n">3</span> ลิงก์อ่านรายละเอียด <span class="opt">(ไม่บังคับ)</span></div>
+          <input type="url" id="link" class="bc-input" inputmode="url" autocomplete="off" placeholder="https://…">
+          <p class="bc-hint">ใส่ลิงก์แล้วจะมีปุ่ม “📰 อ่านรายละเอียด” ใต้ข้อความ</p>
+        </div>
+
+        <div class="bc-step">
+          <label class="check-row"><input type="checkbox" id="silent"> <span>ส่งแบบไม่มีเสียงแจ้งเตือน<br><span class="bc-hint" style="margin:0">ผู้รับยังเห็นข้อความในแชตตามปกติ แต่มือถือไม่เด้งเตือน</span></span></label>
+        </div>
+      </div>
+
+      <div class="bc-preview">
+        <div class="bc-card">
+          <div class="preview-title">👀 ตัวอย่างที่ผู้รับจะเห็นในแชต</div>
+          <div class="chat" id="chat"></div>
+        </div>
+      </div>
+
+      <div class="bc-card bc-actions">
+        <div class="quota-box" id="quotaBox" hidden></div>
+        <button class="btn" id="testBtn" type="button">📱 ส่งทดสอบเข้า LINE ของฉันก่อน</button>
+        <div class="link-hint" id="testHint" hidden>ต้องเชื่อมบัญชี LINE ก่อนจึงจะส่งทดสอบได้ — <a href="/staff.html?tab=settings&amp;topic=links">ไปเชื่อมที่ ตั้งค่า &gt; บัญชีที่เชื่อม</a></div>
+        <button class="btn primary" id="sendBtn" type="button">📢 ส่งถึงเพื่อนทุกคน…</button>
+        <div id="notice"></div>
+      </div>
+    </div>
+
+    <div class="bc-card sent-card" id="sentCard" hidden>
+      <div class="big">✅</div>
+      <h2>ส่งประกาศถึงเพื่อนทุกคนแล้ว</h2>
+      <p id="sentMsg"></p>
+      <button class="btn primary" id="newBtn" type="button">➕ เริ่มประกาศใหม่</button>
+    </div>
+
+    <div class="dash-section">
+      <h3>🕘 ประวัติการส่งล่าสุด</h3>
+      <div class="history" id="history"></div>
+      <p class="empty-hint" id="historyEmpty" hidden>ยังไม่มีประวัติการส่ง</p>
+      <p class="empty-hint" id="historyOff" hidden>ยังไม่เปิดเก็บประวัติ — ผู้ดูแลระบบต้องรัน <code>supabase-migration-11-broadcasts.sql</code> บน Supabase ก่อน (ส่งประกาศได้ตามปกติระหว่างนี้)</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">ยืนยันส่งประกาศถึงเพื่อนทุกคน</h2>
+    <p class="sub">ตรวจรายละเอียดอีกครั้งก่อนกดยืนยัน</p>
+    <div class="modal-thumbs" id="modalThumbs"></div>
+    <div class="sum" id="modalSum"></div>
+    <div class="warnline" id="modalWarn"></div>
+    <label class="check-row"><input type="checkbox" id="confirmCheck"> <span>ตรวจสอบรูปและข้อความเรียบร้อยแล้ว</span></label>
+    <div class="modal-btns">
+      <button class="btn" id="modalCancel" type="button">ยกเลิก</button>
+      <button class="btn primary" id="modalSend" type="button" disabled>ยืนยันส่งถึงทุกคน</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MAX_IMAGES = 4, MAX_CAPTION = 1000;
+const MAX_ORIG = 10 * 1048576, MAX_PREVIEW = 1048576;
+const $ = (id) => document.getElementById(id);
+const S = { images: [], info: null, retryKey: newKey(), sent: false, busy: false, seq: 0 };
+let sbClient = null;
+
+function newKey() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+const fmtN = (n) => (n == null || !Number.isFinite(Number(n)) ? "–" : Number(n).toLocaleString("th-TH"));
+const fmtKB = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB");
+function fmtWhen(iso) {
+  return new Date(iso).toLocaleString("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " น.";
+}
+function fmtYmd(ymd) {
+  const d = new Date(`${ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}T12:00:00+09:00`);
+  return d.toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short", year: "numeric" });
+}
+
+async function api(action, opts = {}) {
+  const method = opts.method || "GET";
+  try {
+    const r = await fetch(`/api/staff?action=${encodeURIComponent(action)}`, {
+      method,
+      headers: method === "POST" ? { "Content-Type": "application/json" } : undefined,
+      body: method === "POST" ? JSON.stringify(opts.body || {}) : undefined,
+    });
+    const j = await r.json().catch(() => null);
+    return j || { ok: false, network: true, error: `ระบบตอบกลับผิดปกติ (HTTP ${r.status})` };
+  } catch (e) {
+    return { ok: false, network: true, error: "เชื่อมต่อระบบไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่" };
+  }
+}
+
+/* ═══ เริ่มหน้า — สิทธิ์ตรวจที่เซิร์ฟเวอร์ (bc-* เฉพาะแอดมิน) หน้านี้แค่แสดงผลตามที่ได้ ═══ */
+async function boot() {
+  const info = await api("bc-info");
+  $("loading").hidden = true;
+  if (!info.ok) {
+    if (info.code === "session_bad" || info.code === "session_expired") { location.href = "/staff-login.html"; return; }
+    const ICON = { pending_approval: "⏳", suspended: "🚫", need_role: "⛔" };
+    $("invalidIcon").textContent = ICON[info.code] || "⚠️";
+    $("invalidTitle").textContent = info.error || "เปิดหน้านี้ไม่สำเร็จ";
+    $("invalidMsg").textContent = info.hint || "";
+    $("invalid").hidden = false;
+    return;
+  }
+  $("app").hidden = false;
+  applyInfo(info);
+  renderAll();
+}
+async function refreshInfo() {
+  const info = await api("bc-info");
+  if (info.ok) { applyInfo(info); renderQuota(); }
+}
+function applyInfo(info) {
+  S.info = info;
+  $("testBtn").disabled = !info.lineLinked;
+  $("testHint").hidden = !!info.lineLinked;
+  renderHistory();
+}
+
+/* ═══ ตัวเลขโควตา — โชว์ให้คำนวณเองเท่านั้น ไม่กั้นปุ่มส่ง (หลักเดียวกับที่บอสสั่งไลน์สำนักปลัด 23 ก.ย. 69
+   "ห้ามปิดกั้นการจำกัดโควตา เดี๋ยวผมคำนวณเอง") ด่านเดียวคือไลน์ปฏิเสธเองถ้าไม่พอจริง ═══ */
+function quotaNumbers() {
+  const q = S.info?.quota || {}, f = S.info?.followers;
+  const reach = f ? f.reachable : null;
+  const left = q.unknown ? null : q.remaining;
+  const after = reach != null && left != null ? left - reach : null;
+  return { q, f, reach, left, after, short: after != null && after < 0, low: after != null && after >= 0 && after < 30 };
+}
+function renderQuota() {
+  const { q, f, reach, left, after, short, low } = quotaNumbers();
+  $("statReach").textContent = fmtN(reach);
+  $("statLeft").textContent = fmtN(left);
+  $("statLeftLab").textContent = q.unknown ? "โควตาคงเหลือ (เช็คไม่ได้)" : `โควตาคงเหลือเดือนนี้ (จาก ${fmtN(q.limit)})`;
+  $("statAfter").textContent = fmtN(after);
+  $("statAfterBox").className = "bc-stat" + (short ? " bad" : low ? " warn" : "");
+  $("statsNote").textContent = f
+    ? `เพื่อนทั้งหมด ${fmtN(f.followers)} คน หักคนที่บล็อก ${fmtN(f.blocks)} คน (ข้อมูลของไลน์ ณ ${fmtYmd(f.date)} อัปเดตวันละครั้ง) · ไลน์นับ 1 ข้อความต่อผู้รับ 1 คน ไม่ว่าจะส่งกี่รูป`
+    : "ยังดึงจำนวนเพื่อนจากไลน์ไม่ได้ (ไลน์จะเริ่มมีสถิติหลังเปิดบัญชี 1–2 วัน) · ไลน์นับ 1 ข้อความต่อผู้รับ 1 คน ไม่ว่าจะส่งกี่รูป";
+  const box = $("quotaBox");
+  box.hidden = false;
+  if (short) {
+    box.className = "quota-box bad";
+    box.textContent = `⚠️ โควตาคงเหลือ ${fmtN(left)} ข้อความ น้อยกว่าจำนวนผู้รับประมาณ ${fmtN(reach)} คน — ถ้ากดส่ง ไลน์อาจปฏิเสธทั้งชุด (จะไม่มีใครได้รับเลย) ยังกดส่งได้ตามปกติหากต้องการลอง`;
+  } else if (low) {
+    box.className = "quota-box warn";
+    box.textContent = `หลังส่งจะเหลือโควตาประมาณ ${fmtN(after)} ข้อความ — ข้อความแจ้งผลถึงประชาชนและแจ้งเตือนเจ้าหน้าที่ทาง LINE ของเดือนนี้ใช้โควตาเดียวกัน (รีเซ็ตทุกต้นเดือน)`;
+  } else if (reach != null) {
+    box.className = "quota-box";
+    box.textContent = `ครั้งนี้ใช้โควตาประมาณ ${fmtN(reach)} ข้อความ (1 ข้อความต่อเพื่อน 1 คน)`;
+  } else {
+    box.className = "quota-box";
+    box.textContent = "ครั้งนี้ใช้โควตา 1 ข้อความต่อเพื่อน 1 คน (ยังไม่ทราบจำนวนเพื่อนที่แน่นอน)";
+  }
+}
+
+/* ═══ เตรียมรูปในเบราว์เซอร์ — ต้นฉบับ JPG/PNG ไม่เกิน 10MB เก็บตามเดิม (ตัวหนังสือบนโปสเตอร์คมเท่าต้นฉบับ)
+   นอกนั้นแปลงเป็น JPEG ด้านยาว 2048px · ภาพย่อ (ไลน์ใช้แสดงในแชต) ต้อง ≤ 1MB — ทำให้เฉพาะรูปที่ใหญ่กว่านั้น
+   JPEG จากกล้องมือถือที่มีค่าหมุนภาพ (EXIF orientation) แปลงใหม่เสมอ กันผู้รับเห็นรูปตะแคง ═══ */
+function loadImg(blob) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
+    img.src = url;
+  });
+}
+function encodeJpeg(img, maxSide, quality) {
+  const w0 = img.naturalWidth, h0 = img.naturalHeight;
+  const s = Math.min(1, maxSide / Math.max(w0, h0));
+  const w = Math.max(1, Math.round(w0 * s)), h = Math.max(1, Math.round(h0 * s));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); // PNG พื้นใส → ขาว (JPEG ไม่มีพื้นใส ไม่งั้นกลายเป็นดำ)
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, w, h);
+  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("encode"))), "image/jpeg", quality));
+}
+async function jpegOrientation(file) {
+  try {
+    const v = new DataView(await file.slice(0, 131072).arrayBuffer());
+    if (v.getUint16(0) !== 0xffd8) return 1;
+    let off = 2;
+    while (off + 4 <= v.byteLength) {
+      const marker = v.getUint16(off);
+      if ((marker & 0xff00) !== 0xff00 || marker === 0xffda) return 1;
+      const len = v.getUint16(off + 2);
+      if (marker === 0xffe1 && v.getUint32(off + 4) === 0x45786966) { // "Exif"
+        const tiff = off + 10, little = v.getUint16(tiff) === 0x4949;
+        const ifd = tiff + v.getUint32(tiff + 4, little), n = v.getUint16(ifd, little);
+        for (let i = 0; i < n; i++) {
+          const e = ifd + 2 + i * 12;
+          if (v.getUint16(e, little) === 0x0112) return v.getUint16(e + 8, little) || 1;
+        }
+        return 1;
+      }
+      off += 2 + len;
+    }
+  } catch (_) {}
+  return 1;
+}
+async function prepareImage(file) {
+  const type = String(file.type || "").toLowerCase();
+  let loaded;
+  try { loaded = await loadImg(file); } catch (_) { throw new Error("เปิดไฟล์นี้ไม่ได้ — รองรับเฉพาะรูป JPG หรือ PNG"); }
+  const { img, url } = loaded;
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const jpgPng = type === "image/jpeg" || type === "image/png";
+  const rotated = type === "image/jpeg" && (await jpegOrientation(file)) !== 1;
+  let origBlob = file, origType = type;
+  if (!jpgPng || rotated || file.size > MAX_ORIG || Math.max(w, h) > 4096) {
+    origBlob = await encodeJpeg(img, 2048, 0.9);
+    origType = "image/jpeg";
+    if (origBlob.size > MAX_ORIG) throw new Error("รูปใหญ่เกิน 10 MB แม้ย่อแล้ว");
+  }
+  let previewBlob = null;
+  if (origBlob.size > MAX_PREVIEW) {
+    for (const [side, q] of [[1024, 0.85], [1024, 0.72], [800, 0.65], [640, 0.6]]) {
+      previewBlob = await encodeJpeg(img, side, q);
+      if (previewBlob.size <= MAX_PREVIEW) break;
+    }
+    if (previewBlob.size > MAX_PREVIEW) throw new Error("ทำภาพย่อให้เล็กกว่า 1 MB ไม่สำเร็จ");
+  }
+  return { url, w, h, origBlob, origType, previewBlob };
+}
+
+async function addFiles(fileList) {
+  if (S.sent || S.busy) return;
+  const files = [...fileList].filter((f) => f && (/^image\//i.test(f.type) || !f.type));
+  if (!files.length) return;
+  const room = MAX_IMAGES - S.images.length;
+  if (room <= 0) { showNotice("err", `ส่งได้ครั้งละไม่เกิน ${MAX_IMAGES} รูป — ลบรูปเดิมออกก่อนถ้าต้องการเปลี่ยน`); return; }
+  if (files.length > room) showNotice("info", `เลือกมา ${files.length} รูป ใช้ได้อีก ${room} รูป (สูงสุด ${MAX_IMAGES} รูปต่อครั้ง) — เพิ่มให้ ${room} รูปแรก`);
+  else clearNotice();
+  const batch = files.slice(0, room).map((file) => ({ id: ++S.seq, name: file.name || "รูปที่วาง", file, busy: true }));
+  S.images.push(...batch);
+  touchDraft();
+  for (const im of batch) {
+    try {
+      Object.assign(im, await prepareImage(im.file), { busy: false });
+    } catch (e) {
+      S.images = S.images.filter((x) => x !== im);
+      showNotice("err", `❌ ${im.name} — ${e.message}`);
+    }
+    touchDraft();
+  }
+}
+function removeImage(id) {
+  const im = S.images.find((x) => x.id === id);
+  if (im?.url) URL.revokeObjectURL(im.url);
+  S.images = S.images.filter((x) => x.id !== id);
+  touchDraft();
+}
+function moveImage(id, dir) {
+  const i = S.images.findIndex((x) => x.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= S.images.length) return;
+  [S.images[i], S.images[j]] = [S.images[j], S.images[i]];
+  touchDraft();
+}
+
+/* ร่างเปลี่ยน = รหัสกันส่งซ้ำใหม่ (รหัสเดิมใช้ได้แค่กับร่างเดิม — ใช้ซ้ำกับเนื้อหาใหม่ ไลน์จะตอบว่าส่งไปแล้วและไม่ส่ง)
+   ร่างไม่เปลี่ยน = รหัสเดิมเสมอ → กดส่งซ้ำ/เน็ตหลุดแล้วกดใหม่ ไลน์จะไม่ส่งให้ทุกคนสองรอบ */
+function touchDraft() {
+  S.retryKey = newKey();
+  renderAll();
+}
+// พิมพ์ข้อความ/ลิงก์/สลับเสียง = ร่างเปลี่ยนเหมือนกัน แต่ไม่ต้องวาดรูปขนาดย่อใหม่ทุกตัวอักษร
+function touchText() {
+  S.retryKey = newKey();
+  renderPreviewCard();
+  renderCounter();
+}
+function renderCounter() {
+  const n = $("caption").value.trim().length;
+  $("capCounter").textContent = `${n.toLocaleString("th-TH")} / ${MAX_CAPTION.toLocaleString("th-TH")}`;
+  $("capCounter").classList.toggle("over", n > MAX_CAPTION);
+}
+
+/* ═══ แสดงผล ═══ */
+function renderAll() {
+  renderThumbs();
+  renderPreview();
+  renderQuota();
+  const busy = S.images.some((x) => x.busy);
+  $("sendBtn").disabled = S.busy || busy || !S.images.length;
+  $("testBtn").disabled = S.busy || busy || !S.images.length || !S.info?.lineLinked;
+  const full = S.images.length >= MAX_IMAGES;
+  $("dropzone").setAttribute("aria-disabled", String(full || S.busy));
+  $("imgCount").textContent = S.images.length ? `(${S.images.length}/${MAX_IMAGES} รูป)` : "(1–4 รูป)";
+  renderCounter();
+}
+function renderThumbs() {
+  const box = $("thumbs");
+  box.innerHTML = "";
+  S.images.forEach((im, i) => {
+    const d = document.createElement("div");
+    d.className = "thumb" + (im.busy ? " busy" : "");
+    const size = im.origBlob ? fmtKB(im.origBlob.size) : "";
+    d.innerHTML = `<span class="order">${i + 1}</span>` +
+      (im.url ? `<img src="${esc(im.url)}" alt="">` : `<img alt="">`) +
+      `<div class="meta">${im.w ? esc(`${im.w}×${im.h} · ${size}`) : esc(im.name)}</div>` +
+      `<div class="tools">` +
+      `<button type="button" data-act="left" aria-label="เลื่อนรูปที่ ${i + 1} ไปก่อน" ${i === 0 || S.busy ? "disabled" : ""}>◀</button>` +
+      `<button type="button" data-act="right" aria-label="เลื่อนรูปที่ ${i + 1} ไปหลัง" ${i === S.images.length - 1 || S.busy ? "disabled" : ""}>▶</button>` +
+      `<button type="button" data-act="rm" class="rm" aria-label="ลบรูปที่ ${i + 1}" ${S.busy ? "disabled" : ""}>✕</button></div>`;
+    d.querySelector('[data-act="left"]').onclick = () => moveImage(im.id, -1);
+    d.querySelector('[data-act="right"]').onclick = () => moveImage(im.id, 1);
+    d.querySelector('[data-act="rm"]').onclick = () => removeImage(im.id);
+    box.appendChild(d);
+  });
+}
+// ตัวอย่างแชตแยก 2 ส่วน: รูป (วาดใหม่เฉพาะตอนรูปเปลี่ยน) กับการ์ดข้อความ (วาดใหม่ทุกครั้งที่พิมพ์)
+// — พิมพ์ข้อความแล้วรูปไม่กระพริบ/ไม่โหลดใหม่ทุกตัวอักษร
+function renderPreview() {
+  const chat = $("chat");
+  if (!chat.dataset.ready) {
+    chat.innerHTML = `<div class="chat-top"><img src="/assets/logo-pao.png" alt=""><span class="oa">ศูนย์ช่วยเหลือประชาชนทางกฎหมาย</span></div>` +
+      `<div id="chatImgs" style="display:contents"></div><div id="chatCard" style="display:contents"></div>` +
+      `<div class="chat-empty" id="chatEmpty">ยังไม่ได้เลือกรูปโปสเตอร์<br>ตัวอย่างสิ่งที่ผู้รับจะเห็นจะขึ้นตรงนี้</div><div class="chat-time" id="chatTime"></div>`;
+    chat.dataset.ready = "1";
+  }
+  const ready = S.images.filter((x) => x.url);
+  const sig = ready.map((x) => x.id).join(",");
+  if ($("chatImgs").dataset.sig !== sig) {
+    $("chatImgs").innerHTML = ready.map((im) => `<div class="chat-row"><img class="chat-img" src="${esc(im.url)}" alt=""></div>`).join("");
+    $("chatImgs").dataset.sig = sig;
+  }
+  renderPreviewCard();
+}
+function renderPreviewCard() {
+  const cap = $("caption").value.trim();
+  const link = $("link").value.trim();
+  const hasImg = S.images.some((x) => x.url);
+  $("chatCard").innerHTML = cap || link
+    ? `<div class="chat-row"><div class="chat-card"><div class="cb"><div class="org">📢 ศูนย์ช่วยเหลือประชาชนทางกฎหมาย อบจ.สุพรรณบุรี</div><hr>` +
+      (cap ? `<div class="cap">${esc(cap)}</div>` : `<div class="cap muted">อ่านรายละเอียดเพิ่มเติมได้จากปุ่มด้านล่าง</div>`) +
+      `</div>${link ? `<div class="cbtn">📰 อ่านรายละเอียด</div>` : ""}</div></div>`
+    : "";
+  $("chatEmpty").hidden = hasImg || !!cap || !!link;
+  $("chatTime").hidden = !$("chatEmpty").hidden;
+  $("chatTime").textContent = $("silent").checked ? "🔕 ส่งแบบไม่มีเสียงแจ้งเตือน" : "🔔 มีเสียงแจ้งเตือนตามปกติ";
+}
+function renderHistory() {
+  const info = S.info || {};
+  const box = $("history");
+  box.innerHTML = "";
+  $("historyOff").hidden = info.historyAvailable !== false;
+  $("historyEmpty").hidden = !(info.historyAvailable && !(info.history || []).length);
+  for (const h of info.history || []) {
+    const imgs = Array.isArray(h.image_urls) ? h.image_urls : [];
+    const d = document.createElement("div");
+    d.className = "hrow";
+    d.innerHTML = (imgs[0] ? `<img src="${esc(imgs[0])}" alt="" loading="lazy">` : `<img alt="">`) +
+      `<div class="hmid"><div class="hline1">` +
+      `<span class="tag ${h.mode === "test" ? "test" : "all"}">${h.mode === "test" ? "ทดสอบ" : "ถึงทุกคน"}</span>` +
+      `<span class="tag ${h.status === "sent" ? "sent" : "failed"}">${h.status === "sent" ? "ส่งแล้ว" : "ไม่สำเร็จ"}</span>` +
+      `<span>${esc(fmtWhen(h.created_at))}</span>` +
+      (h.staff_name ? `<span>· ${esc(h.staff_name)}</span>` : "") +
+      `<span>· ${imgs.length} รูป</span>` +
+      (h.mode !== "test" && h.est_recipients != null ? `<span>· ~${esc(fmtN(h.est_recipients))} คน</span>` : "") +
+      (h.notify === false ? `<span>· 🔕</span>` : "") +
+      `</div>` +
+      (h.caption ? `<div class="hcap">${esc(h.caption)}</div>` : "") +
+      (h.status !== "sent" && h.error ? `<div class="herr">${esc(h.error)}</div>` : "") +
+      `</div>`;
+    box.appendChild(d);
+  }
+}
+function showNotice(kind, text) { $("notice").innerHTML = `<div class="notice ${kind}">${esc(text)}</div>`; }
+function clearNotice() { $("notice").innerHTML = ""; }
+function setBusy(on, btn, label) {
+  S.busy = on;
+  if (btn) {
+    if (on) { btn.dataset.label = btn.textContent; btn.innerHTML = `<span class="spin"></span>${esc(label || "กำลังดำเนินการ…")}`; }
+    else if (btn.dataset.label) btn.textContent = btn.dataset.label;
+  }
+  renderAll();
+}
+
+/* ═══ อัปโหลด (ครั้งเดียวต่อรูป — ส่งทดสอบแล้วส่งจริงต่อไม่ต้องอัปโหลดซ้ำ) ═══ */
+async function uploadBlob(blob, contentType) {
+  const ur = await api("bc-upload-url", { method: "POST", body: { contentType } });
+  if (!ur.ok) throw new Error(ur.error || "ขอลิงก์อัปโหลดไม่สำเร็จ");
+  const { error } = await sbClient.storage.from("posters").uploadToSignedUrl(ur.path, ur.token, blob, { contentType });
+  if (error) throw new Error("อัปโหลดรูปไม่สำเร็จ: " + (error.message || error));
+  return ur.path;
+}
+async function uploadAll(btn) {
+  if (!sbClient) {
+    const cfg = await fetch("/api/form?action=config").then((r) => r.json());
+    sbClient = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  }
+  for (const [i, im] of S.images.entries()) {
+    if (im.uploaded) continue;
+    if (btn) btn.innerHTML = `<span class="spin"></span>กำลังอัปโหลดรูป ${i + 1}/${S.images.length}…`;
+    const orig = await uploadBlob(im.origBlob, im.origType);
+    const preview = im.previewBlob ? await uploadBlob(im.previewBlob, "image/jpeg") : orig;
+    im.uploaded = { orig, preview };
+  }
+}
+function draftPayload() {
+  return {
+    images: S.images.map((im) => im.uploaded),
+    caption: $("caption").value.trim(),
+    link: $("link").value.trim(),
+    notify: !$("silent").checked,
+  };
+}
+function clientCheck() {
+  if (!S.images.length) return "กรุณาเลือกรูปโปสเตอร์อย่างน้อย 1 รูป";
+  if (S.images.some((x) => x.busy)) return "รอเตรียมรูปให้เสร็จก่อน";
+  if ($("caption").value.trim().length > MAX_CAPTION) return `ข้อความใต้รูปยาวเกิน ${MAX_CAPTION} ตัวอักษร`;
+  return null;
+}
+
+/* ═══ ส่งทดสอบเข้าไลน์ตัวเอง ═══ */
+$("testBtn").onclick = async () => {
+  const bad = clientCheck();
+  if (bad) return showNotice("err", bad);
+  clearNotice();
+  const btn = $("testBtn");
+  setBusy(true, btn, "กำลังเตรียม…");
+  try {
+    await uploadAll(btn);
+    btn.innerHTML = `<span class="spin"></span>กำลังส่งทดสอบ…`;
+    const r = await api("bc-send", { method: "POST", body: { ...draftPayload(), mode: "test" } });
+    if (r.ok) showNotice("ok", "✅ ส่งทดสอบเข้าแชต LINE OA ของท่านแล้ว — เปิดไลน์ดูหน้าตาจริงก่อนส่งถึงทุกคนได้เลย (ใช้โควตา 1 ข้อความ)");
+    else showNotice("err", "❌ ส่งทดสอบไม่สำเร็จ — " + (r.error || "ไม่ทราบสาเหตุ"));
+  } catch (e) {
+    showNotice("err", "❌ " + e.message);
+  } finally {
+    setBusy(false, btn);
+    refreshInfo();
+  }
+};
+
+/* ═══ ส่งถึงทุกคน: อัปโหลด → ให้ไลน์ตรวจรูปแบบข้อความ (ไม่ส่ง ไม่กินโควตา) → หน้าต่างยืนยัน → ส่งจริง ═══ */
+$("sendBtn").onclick = async () => {
+  const bad = clientCheck();
+  if (bad) return showNotice("err", bad);
+  clearNotice();
+  const btn = $("sendBtn");
+  setBusy(true, btn, "กำลังเตรียม…");
+  try {
+    await uploadAll(btn);
+    btn.innerHTML = `<span class="spin"></span>กำลังให้ไลน์ตรวจรูปแบบข้อความ…`;
+    const [check] = await Promise.all([api("bc-check", { method: "POST", body: draftPayload() }), refreshInfo()]);
+    if (!check.ok) { showNotice("err", "❌ " + (check.error || "ตรวจไม่ผ่าน")); return; }
+    openConfirm();
+  } catch (e) {
+    showNotice("err", "❌ " + e.message);
+  } finally {
+    setBusy(false, btn);
+  }
+};
+
+let lastFocus = null;
+function openConfirm() {
+  const { reach, left, after, short } = quotaNumbers();
+  const p = draftPayload();
+  $("modalThumbs").innerHTML = S.images.map((im) => `<img src="${esc(im.url)}" alt="">`).join("");
+  const rows = [
+    ["รูปโปสเตอร์", `${S.images.length} รูป`],
+    ["ข้อความใต้รูป", p.caption ? `${p.caption.length.toLocaleString("th-TH")} ตัวอักษร` : "ไม่มี"],
+    ["ปุ่มอ่านรายละเอียด", p.link ? "มี" : "ไม่มี"],
+    ["เสียงแจ้งเตือน", p.notify ? "มี" : "ไม่มี (ส่งเงียบ)"],
+    ["จะส่งถึงประมาณ", reach != null ? `${fmtN(reach)} คน` : "ไม่ทราบจำนวนแน่นอน"],
+    ["โควตาคงเหลือ", left != null ? `${fmtN(left)} ข้อความ` : "เช็คไม่ได้"],
+    ["คงเหลือหลังส่ง", after != null ? `≈ ${fmtN(after)} ข้อความ` : "–"],
+    ["ตรวจรูปแบบกับไลน์", "✅ ผ่าน"],
+  ];
+  $("modalSum").innerHTML = rows.map(([k, v]) => `<div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>`).join("");
+  $("modalWarn").textContent = (short ? "⚠️ โควตาอาจไม่พอ — ไลน์อาจปฏิเสธทั้งชุดและไม่มีใครได้รับ\n" : "") +
+    "ส่งแล้วเรียกคืนไม่ได้ ประกาศจะขึ้นในแชตของเพื่อนทุกคนทันที";
+  $("modalWarn").style.whiteSpace = "pre-line";
+  $("confirmCheck").checked = false;
+  $("modalSend").disabled = true;
+  lastFocus = document.activeElement;
+  $("modal").hidden = false;
+  $("confirmCheck").focus();
+}
+function closeConfirm() {
+  $("modal").hidden = true;
+  if (lastFocus) lastFocus.focus();
+}
+$("confirmCheck").onchange = () => { $("modalSend").disabled = !$("confirmCheck").checked; };
+$("modalCancel").onclick = closeConfirm;
+$("modal").addEventListener("click", (e) => { if (e.target === $("modal") && !S.busy) closeConfirm(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("modal").hidden && !S.busy) closeConfirm(); });
+
+$("modalSend").onclick = async () => {
+  const btn = $("modalSend");
+  $("modalCancel").disabled = true;
+  setBusy(true, btn, "กำลังส่งถึงทุกคน…");
+  let r;
+  try {
+    r = await api("bc-send", { method: "POST", body: { ...draftPayload(), mode: "all", retryKey: S.retryKey } });
+  } finally {
+    setBusy(false, btn);
+    $("modalCancel").disabled = false;
+  }
+  closeConfirm();
+  if (r.ok) {
+    S.sent = true;
+    const when = new Date().toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok", hour: "2-digit", minute: "2-digit" });
+    $("sentMsg").textContent = r.duplicate
+      ? "ประกาศนี้ส่งถึงทุกคนไปแล้วก่อนหน้านี้ ระบบจึงไม่ส่งซ้ำ"
+      : `ส่งเมื่อ ${when} น. — ประกาศขึ้นในแชตของเพื่อนทุกคนแล้ว` + (r.logged === false ? " (ยังไม่เปิดเก็บประวัติ จึงไม่มีรายการด้านล่าง)" : "");
+    $("composeArea").hidden = true;
+    $("sentCard").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    refreshInfo();
+  } else if (r.network) {
+    // ไม่รู้ว่าไลน์รับไปแล้วหรือยัง — คงรหัสกันซ้ำเดิมไว้ กดส่งใหม่ได้อย่างปลอดภัย (ถ้ารับไปแล้วไลน์จะไม่ส่งซ้ำ)
+    showNotice("err", "⚠️ ไม่ได้รับคำตอบจากระบบ ไม่แน่ใจว่าส่งสำเร็จหรือยัง — กด “ส่งถึงเพื่อนทุกคน” อีกครั้งได้อย่างปลอดภัย ระบบกันส่งซ้ำไว้แล้ว (ถ้าส่งไปแล้วจะไม่ส่งซ้ำ)");
+  } else {
+    showNotice("err", "❌ ส่งไม่สำเร็จ — " + (r.error || "ไม่ทราบสาเหตุ"));
+    refreshInfo();
+  }
+};
+
+$("newBtn").onclick = () => {
+  for (const im of S.images) if (im.url) URL.revokeObjectURL(im.url);
+  S.images = [];
+  S.sent = false;
+  $("caption").value = ""; $("link").value = ""; $("silent").checked = false;
+  $("sentCard").hidden = true;
+  $("composeArea").hidden = false;
+  clearNotice();
+  touchDraft();
+};
+
+/* ═══ เลือกรูป: แตะ / ลากวาง / วางจากคลิปบอร์ด ═══ */
+const dz = $("dropzone");
+dz.onclick = () => { if (dz.getAttribute("aria-disabled") !== "true") $("fileInput").click(); };
+$("fileInput").onchange = (e) => { addFiles(e.target.files); e.target.value = ""; };
+dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("over"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+dz.addEventListener("drop", (e) => { e.preventDefault(); dz.classList.remove("over"); addFiles(e.dataTransfer.files); });
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => e.preventDefault()); // วางพลาดนอกกรอบ = ไม่ให้เบราว์เซอร์เปิดรูปทับหน้านี้
+document.addEventListener("paste", (e) => {
+  if ($("app").hidden || S.sent) return;
+  const files = [...(e.clipboardData?.files || [])].filter((f) => /^image\//i.test(f.type));
+  if (files.length) { e.preventDefault(); addFiles(files); }
+});
+$("caption").addEventListener("input", touchText);
+$("link").addEventListener("input", touchText);
+$("silent").addEventListener("change", touchText);
+window.addEventListener("beforeunload", (e) => {
+  if (S.images.length && !S.sent) { e.preventDefault(); e.returnValue = ""; }
+});
+
+boot();
+</script>
+</body>
+</html>

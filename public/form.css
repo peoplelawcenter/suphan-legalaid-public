@@ -1,0 +1,80 @@
+/* public/form.css — สไตล์ร่วมของฟอร์มทั้ง 2 ใบ (consult.html / complaint.html)
+   มือถือเป็นหลัก (ผู้ใช้จริงคือประชาชนทั่วไป ส่วนใหญ่เปิดจากไลน์ในมือถือ) */
+:root {
+  --navy: #0B2E6D;
+  --navy-dark: #082158;
+  --light: #EAF3FC;
+  --gold: #D9A93B;
+  --white: #ffffff;
+  --gray: #5A6B85;
+  --text: #1c2530;
+  --danger: #b3261e;
+  --radius: 14px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Prompt', 'Sarabun', 'Noto Sans Thai', sans-serif;
+  background: var(--light);
+  color: var(--text);
+  padding: env(safe-area-inset-top, 0px) 16px calc(env(safe-area-inset-bottom, 0px) + 24px) 16px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap { max-width: 640px; margin: 0 auto; }
+.topbar {
+  background: var(--navy);
+  color: var(--white);
+  margin: 0 -16px 20px -16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 16px 16px 16px;
+}
+.topbar h1 { font-size: 1.15rem; margin: 0 0 4px 0; }
+.topbar p { font-size: 0.8rem; color: var(--gold); margin: 0; }
+
+.card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: 0 2px 10px rgba(11,46,109,0.08); margin-bottom: 16px; }
+
+label { display: block; font-weight: 600; margin: 16px 0 6px; font-size: 0.92rem; }
+label:first-of-type { margin-top: 0; }
+.hint { font-size: 0.78rem; color: var(--gray); margin-top: 4px; }
+input[type=text], input[type=tel], input[type=email], input[type=password], input[type=number], textarea, select {
+  width: 100%; padding: 12px 14px; border: 1px solid #c7d3e6; border-radius: 10px;
+  font-size: 1rem; font-family: inherit; background: #fff; color: var(--text);
+}
+textarea { min-height: 110px; resize: vertical; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--navy); border-color: var(--navy); }
+
+.checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; }
+.checkbox-row input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+.checkbox-row label { margin: 0; font-weight: 400; font-size: 0.85rem; color: var(--text); }
+
+.btn {
+  display: block; width: 100%; padding: 14px; border-radius: 10px; border: none;
+  background: var(--navy); color: var(--white); font-size: 1rem; font-weight: 700;
+  font-family: inherit; cursor: pointer; margin-top: 8px;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn.secondary { background: transparent; color: var(--navy); border: 1px solid var(--navy); }
+
+.filelist { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.filelist .file-row { display: flex; align-items: center; justify-content: space-between; background: var(--light); border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; }
+.filelist .file-row.error { background: #fdecea; color: var(--danger); }
+.filelist .remove { color: var(--danger); background: none; border: none; font-size: 0.9rem; cursor: pointer; }
+
+.state-box { text-align: center; padding: 40px 16px; }
+.state-box .icon { font-size: 3rem; margin-bottom: 12px; }
+.state-box h2 { color: var(--navy); margin: 0 0 8px; }
+.state-box p { color: var(--gray); margin: 0; }
+
+.success-box { text-align: center; padding: 30px 16px; }
+.success-box .caseno { font-size: 1.6rem; font-weight: 800; color: var(--navy); margin: 10px 0; letter-spacing: 0.5px; }
+
+.disclaimer { font-size: 0.75rem; color: var(--gray); margin-top: 14px; text-align: center; }
+
+/* ═══ ลิงก์ข้อความเล็กๆ ใต้ปุ่ม (เข้าสู่ระบบ/สมัครสมาชิก/ลืมรหัสผ่าน) — เพิ่ม 17 ก.ย. 69 รอบ 3 ═══ */
+.link-row { text-align: center; margin-top: 14px; font-size: 0.85rem; }
+.link-row a, .text-link { color: var(--navy); font-weight: 600; text-decoration: none; cursor: pointer; }
+.link-row a:hover, .text-link:hover { text-decoration: underline; }
+.form-error { background: #fdecea; color: var(--danger); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; margin: 14px 0; }
+
+[hidden] { display: none !important; }
